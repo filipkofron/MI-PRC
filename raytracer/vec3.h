@@ -2,6 +2,7 @@
 #define VEC3_H
 
 #include <cmath>
+#include <cstdio>
 
 struct vec3_t
 {
