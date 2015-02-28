@@ -4,8 +4,8 @@
 
 using namespace std;
 
-#define TEST_WIDTH 512
-#define TEST_HEIGHT 512
+#define TEST_WIDTH 1280
+#define TEST_HEIGHT 1024
 #define TEST_DIV 8
 
 void trace_all(int width, int height, float *colors)
@@ -27,6 +27,7 @@ int main()
     float *test = (float *) malloc(sizeof(float) * size);
     trace_all(TEST_WIDTH, TEST_HEIGHT, test);
     FILE *file = fopen("/tmp/test.bmp", "wb+");
+    srand(time(NULL));
     if(file)
     {
         write_bmp(file, test, TEST_WIDTH, TEST_HEIGHT);

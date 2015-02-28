@@ -103,6 +103,14 @@ inline void normalize(float *res, float *vec)
     mul(res, vec, 1.0f / len);
 }
 
+inline void reflection(float *res, float *dir, float *normal)
+{
+    float dotp = dot(dir, normal);
+    float temp[3];
+    mul(temp, normal, dotp * 2.0f);
+    sub(res, dir, temp);
+}
+
 inline void print_vec(float *vec)
 {
     printf("[%f, %f, %f]", vec[0], vec[1], vec[2]);
