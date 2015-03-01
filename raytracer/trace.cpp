@@ -4,24 +4,41 @@
 
 #define DEPTH_MAX 3
 
-#define spheres_test_cnt 7
+#define spheres_test_cnt 9
 
-float test_sun[3] = {5000.0f, 5000.0f, -1000.0f};
+#define RANDOM_MOVE_VEC(vec,random) \
+do {\
+vec [0] += 0.5f / (random.rand256() - 127); \
+vec [1] += 0.5f / (random.rand256() - 127); \
+vec [2] += 0.5f / (random.rand256() - 127); \
+} while (false)
+
+float test_sun[3] = {50000.0f, 50000.0f, -40000.0f};
 
 float spheres_test[SPHERE_SIZE * spheres_test_cnt] = {
         -300.0f, 300.0f, 200.0f, 155.0f,0.45f, 0.1f, 0.45f, 0.0f, 3.0f, 3.0f, 2.0f,
         -79.0f, -10.0f, 300.0f, 100.0f, 0.1f, 0.9f, 0.1f, 0.0f, 0.0f, 0.0f, 0.0f,
-        100.0f, 50.0f, 100.0f, 70.0f, 0.1f, 0.1f, 0.9f, 0.0f, 0.0f, 0.0f, 0.0f,
+        100.0f, 50.0f, 200.0f, 70.0f, 0.1f, 0.1f, 0.9f, 0.0f, 0.0f, 0.0f, 0.0f,
         10.0f, -50.0f, 400.0f, 66.0f, 0.9f, 0.1f, 0.1f, 0.0f, 0.0f, 0.0f, 0.0f,
         100.0f, -1000.0f, 100.0f, 500.0f, 0.1f, 0.1f, 0.9f, 0.0f, 1.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 2000.0f, 1000.0f, 0.5f, 0.5f, 0.9f, 0.0f, 0.0f, 0.0f, 0.0f,
-        1000.0f, -50.0f, 400.0f, 166.0f, 0.9f, 0.1f, 0.1f, 0.0f, 0.0f, 1.0f, 0.0f
+        1000.0f, -50.0f, 400.0f, 166.0f, 0.9f, 0.1f, 0.1f, 0.0f, 0.0f, 1.0f, 0.0f,
+        -1300.0f, -500.0f, 4000.0f, 2000.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.4f,
+        50000.0f, 50000.0f, -40000.0f, 800.0f, 1.0f, 1.0f, 0.8f, 0.0f, 3.0f, 3.0f, 3.0f
 };
 
 
-void trace_ray(float *color, float *pos, float *dir, float *spheres, uint32_t spheres_count, uint32_t depth, FastRandom &random)
+void trace_ray(
+        float *color,
+        float *pos,
+        float *dir,
+        float *spheres,
+        uint32_t spheres_count,
+        uint32_t depth,
+        FastRandom &random)
 {
     int closest = -1;
+    int sphere_not_triangle = 0;
     float dist = FLT_MAX;
     float temp;
     color[0] = color[1] = color[2] = 0.00f;
@@ -32,6 +49,7 @@ void trace_ray(float *color, float *pos, float *dir, float *spheres, uint32_t sp
         {
             dist = temp;
             closest = i;
+            sphere_not_triangle = 1;
         }
     }
     if(closest > -1)
@@ -52,25 +70,19 @@ void trace_ray(float *color, float *pos, float *dir, float *spheres, uint32_t sp
             trace_ray(temp_color, intersect_pos, refl, spheres, spheres_count, depth + 1, random);
             add(color, temp_color);
 
-            float a = 0.3f;
-
-            refl[0] += a / random.rand256();
-            refl[1] += a / random.rand256();
+            RANDOM_MOVE_VEC(refl, random);
             trace_ray(temp_color, intersect_pos, refl, spheres, spheres_count, depth + 1, random);
             add(color, temp_color);
 
-            refl[0] -= a / random.rand256();
-            refl[1] -= a / random.rand256();
+            RANDOM_MOVE_VEC(refl, random);
             trace_ray(temp_color, intersect_pos, refl, spheres, spheres_count, depth + 1, random);
             add(color, temp_color);
 
-            refl[0] += a / random.rand256();
-            refl[1] -= a / random.rand256();
+            RANDOM_MOVE_VEC(refl, random);
             trace_ray(temp_color, intersect_pos, refl, spheres, spheres_count, depth + 1, random);
             add(color, temp_color);
 
-            refl[0] -= a / random.rand256();
-            refl[1] += a / random.rand256();
+            RANDOM_MOVE_VEC(refl, random);
             trace_ray(temp_color, intersect_pos, refl, spheres, spheres_count, depth + 1, random);
             add(color, temp_color);
         }
@@ -78,26 +90,39 @@ void trace_ray(float *color, float *pos, float *dir, float *spheres, uint32_t sp
         mul(color, 0.20f);
         add(color, &spheres[closest * SPHERE_SIZE + 8]);
         mul(color, 0.50f);
-        float *my_color = &spheres[closest * SPHERE_SIZE + 4];
-        color[0] += color[0] * my_color[0] * 0.5f;
-        color[1] += color[1] * my_color[1] * 0.5f;
-        color[2] += color[2] * my_color[2] * 0.5f;
-        mul(color, 0.90f);
 
         float temp_sun[3];
-        normalize(temp_sun, test_sun);
-        float sun_dotp = dot(temp_sun, normal);
-        if(sun_dotp > 0.0f)
+        sub(temp_sun, test_sun, intersect_pos);
+        normalize(temp_sun);
+        int has_intersect = 0;
+        for(int i = 0; i < spheres_count - 1; i++)
         {
-            color[0] += sun_dotp;
-            color[1] += sun_dotp;
-            color[2] += sun_dotp;
+            if(i != closest && sphere_intersect(intersect_pos, temp_sun, &spheres[i * SPHERE_SIZE], spheres[i * SPHERE_SIZE + 3]) < FLT_MAX)
+            {
+                has_intersect = 1;
+            }
+        }
+        if(has_intersect == 0)
+        {
+            normalize(temp_sun, test_sun);
+            float sun_dotp = dot(temp_sun, normal);
+            if(sun_dotp > 0.0f)
+            {
+                color[0] += sun_dotp;
+                color[1] += sun_dotp;
+                color[2] += sun_dotp;
+            }
         }
     }
 
     color[0] += 0.05f;
     color[1] += 0.05f;
     color[2] += 0.05f;
+
+    float *my_color = &spheres[closest * SPHERE_SIZE + 4];
+    color[0] *= (0.8f * my_color[0] + 0.2f);
+    color[1] *= (0.8f * my_color[1] + 0.2f);
+    color[2] *= (0.8f * my_color[2] + 0.2f);
 }
 
 void trace_rect(float *dest, int xs, int ys, int ws, int hs, int w, int h)
