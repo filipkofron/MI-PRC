@@ -1,5 +1,4 @@
 #include <stdint.h>
-#include <stdlib.h>
 #include "trace.h"
 #include "sphere.h"
 
@@ -20,7 +19,7 @@ float spheres_test[SPHERE_SIZE * spheres_test_cnt] = {
 };
 
 
-void trace_ray(float *color, float *pos, float *dir, float *spheres, uint32_t spheres_count, uint32_t depth)
+void trace_ray(float *color, float *pos, float *dir, float *spheres, uint32_t spheres_count, uint32_t depth, FastRandom &random)
 {
     int closest = -1;
     float dist = FLT_MAX;
@@ -50,27 +49,29 @@ void trace_ray(float *color, float *pos, float *dir, float *spheres, uint32_t sp
 
         if(depth < DEPTH_MAX)
         {
-            trace_ray(temp_color, intersect_pos, refl, spheres, spheres_count, depth + 1);
+            trace_ray(temp_color, intersect_pos, refl, spheres, spheres_count, depth + 1, random);
             add(color, temp_color);
 
-            refl[0] += 3.0f / (rand() % 1000);
-            refl[1] += 3.0f / (rand() % 1000);
-            trace_ray(temp_color, intersect_pos, refl, spheres, spheres_count, depth + 1);
+            float a = 0.3f;
+
+            refl[0] += a / random.rand256();
+            refl[1] += a / random.rand256();
+            trace_ray(temp_color, intersect_pos, refl, spheres, spheres_count, depth + 1, random);
             add(color, temp_color);
 
-            refl[0] -= 3.0f / (rand() % 1000);
-            refl[1] -= 3.0f / (rand() % 1000);
-            trace_ray(temp_color, intersect_pos, refl, spheres, spheres_count, depth + 1);
+            refl[0] -= a / random.rand256();
+            refl[1] -= a / random.rand256();
+            trace_ray(temp_color, intersect_pos, refl, spheres, spheres_count, depth + 1, random);
             add(color, temp_color);
 
-            refl[0] += 3.0f / (rand() % 1000);
-            refl[1] -= 3.0f / (rand() % 1000);
-            trace_ray(temp_color, intersect_pos, refl, spheres, spheres_count, depth + 1);
+            refl[0] += a / random.rand256();
+            refl[1] -= a / random.rand256();
+            trace_ray(temp_color, intersect_pos, refl, spheres, spheres_count, depth + 1, random);
             add(color, temp_color);
 
-            refl[0] -= 3.0f / (rand() % 1000);
-            refl[1] += 3.0f / (rand() % 1000);
-            trace_ray(temp_color, intersect_pos, refl, spheres, spheres_count, depth + 1);
+            refl[0] -= a / random.rand256();
+            refl[1] += a / random.rand256();
+            trace_ray(temp_color, intersect_pos, refl, spheres, spheres_count, depth + 1, random);
             add(color, temp_color);
         }
 
@@ -104,6 +105,8 @@ void trace_rect(float *dest, int xs, int ys, int ws, int hs, int w, int h)
     float pos[3];
     float dir[3];
 
+    FastRandom random;
+
     for(int x = xs; x < (xs + ws); x++)
     {
         for(int y = ys; y < (ys + hs); y++)
@@ -116,11 +119,13 @@ void trace_rect(float *dest, int xs, int ys, int ws, int hs, int w, int h)
             float *color_offset = &dest[(y * w + x) * 3];
             color_offset[0] = color_offset[1] = color_offset[2] = 0.0f;
             float temp_color[3];
-            trace_ray(temp_color, pos, dir, spheres_test, spheres_test_cnt, 0);
-            add(color_offset, temp_color);
-            trace_ray(temp_color, pos, dir, spheres_test, spheres_test_cnt, 0);
-            add(color_offset, temp_color);
-            mul(color_offset, 0.5f);
+            const int num = 3;
+            for(int i = 0; i < num; i++)
+            {
+                trace_ray(temp_color, pos, dir, spheres_test, spheres_test_cnt, 0, random);
+                add(color_offset, temp_color);
+            }
+            mul(color_offset, 1.0f / num);
 
             if(color_offset[0] > 1.0f)
             {
