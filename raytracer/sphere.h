@@ -4,7 +4,24 @@
 #include <cfloat>
 #include "vec3.h"
 
-#define SPHERE_SIZE (4 + 4 + 3)
+/*
+    0 - 2: pos
+    4:        radius
+    5 - 7:  Ambient color
+    8 - 10: Diffuser color
+    11 - 13: Specular color
+    14:     transparency
+ */
+
+#define SPHERE_POS(spheres) (&spheres[0])
+#define SPHERE_RADIUS(spheres) (spheres[2])
+#define SPHERE_AMBIENT(spheres) (&spheres[5])
+#define SPHERE_DIFFUSE(spheres) (&spheres[8])
+#define SPHERE_SPECULAR(spheres) (&spheres[11])
+#define SPHERE_TRANSPARENCY(spheres) (spheres[14])
+
+#define SPHERE_SIZE (15)
+#define SPHERE_INDEX(idx,spheres) (&spheres[SPHERE_SIZE * idx])
 
 inline float sphere_intersect(float *pos, float *dir, float *center, float r)
 {

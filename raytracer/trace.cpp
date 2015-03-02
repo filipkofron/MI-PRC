@@ -4,8 +4,6 @@
 
 #define DEPTH_MAX 3
 
-#define spheres_test_cnt 9
-
 #define RANDOM_MOVE_VEC(vec,random) \
 do {\
 vec [0] += 0.5f / (random.rand256() - 127); \
@@ -13,22 +11,7 @@ vec [1] += 0.5f / (random.rand256() - 127); \
 vec [2] += 0.5f / (random.rand256() - 127); \
 } while (false)
 
-float test_sun[3] = {50000.0f, 50000.0f, -40000.0f};
-
-float spheres_test[SPHERE_SIZE * spheres_test_cnt] = {
-        -300.0f, 300.0f, 200.0f, 155.0f,0.45f, 0.1f, 0.45f, 0.0f, 3.0f, 3.0f, 2.0f,
-        -79.0f, -10.0f, 300.0f, 100.0f, 0.1f, 0.9f, 0.1f, 0.0f, 0.0f, 0.0f, 0.0f,
-        100.0f, 50.0f, 200.0f, 70.0f, 0.1f, 0.1f, 0.9f, 0.0f, 0.0f, 0.0f, 0.0f,
-        10.0f, -50.0f, 400.0f, 66.0f, 0.9f, 0.1f, 0.1f, 0.0f, 0.0f, 0.0f, 0.0f,
-        100.0f, -1000.0f, 100.0f, 500.0f, 0.1f, 0.1f, 0.9f, 0.0f, 1.0f, 0.0f, 0.0f,
-        0.0f, 0.0f, 2000.0f, 1000.0f, 0.5f, 0.5f, 0.9f, 0.0f, 0.0f, 0.0f, 0.0f,
-        1000.0f, -50.0f, 400.0f, 166.0f, 0.9f, 0.1f, 0.1f, 0.0f, 0.0f, 1.0f, 0.0f,
-        -1300.0f, -500.0f, 4000.0f, 2000.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.4f,
-        50000.0f, 50000.0f, -40000.0f, 800.0f, 1.0f, 1.0f, 0.8f, 0.0f, 3.0f, 3.0f, 3.0f
-};
-
-
-void trace_ray(
+/*void trace_ray(
         float *color,
         float *pos,
         float *dir,
@@ -123,6 +106,42 @@ void trace_ray(
     color[0] *= (0.8f * my_color[0] + 0.2f);
     color[1] *= (0.8f * my_color[1] + 0.2f);
     color[2] *= (0.8f * my_color[2] + 0.2f);
+}*/
+
+struct scene_t
+{
+    float *spheres;
+    uint32_t spheres_count;
+    float *triangles;
+    uint32_t triangles_count;
+} scene;
+
+int find_intersect(float *pos, float *dir, float *new_pos, float *new_dir, float *normal)
+{
+    for(uint32_t i = 0; i < scene.spheres_count; i++)
+    {
+
+    }
+    for(uint32_t i = 0; i < scene.triangles_count; i++)
+    {
+
+    }
+    return 0;
+}
+
+void trace_ray(
+        float *color,
+        float *pos,
+        float *dir,
+        uint32_t depth,
+        FastRandom &random)
+{
+    int closest_idx = -1;
+
+    if(closest_idx > -1)
+    {
+
+    }
 }
 
 void trace_rect(float *dest, int xs, int ys, int ws, int hs, int w, int h)

@@ -1,6 +1,29 @@
 #include <float.h>
 #include "vec3.h"
 
+/*
+    0 - 2: pos a
+    3 - 5: pos b
+    6 - 8: pos c
+    9 - 11:  Ambient color
+    12 - 14: Diffuser color
+    15 - 17: Specular color
+    18:     transparency
+ */
+
+#define TRIANGLE_POS(triangles) (&triangles[0])
+#define TRIANGLE_POS_A(triangles) (&triangles[0])
+#define TRIANGLE_POS_B(triangles) (&triangles[3])
+#define TRIANGLE_POS_C(triangles) (&triangles[6])
+#define TRIANGLE_AMBIENT(triangles) (&triangles[9])
+#define TRIANGLE_DIFFUSE(triangles) (&triangles[12])
+#define TRIANGLE_SPECULAR(triangles) (&triangles[15])
+#define TRIANGLE_TRANSPARENCY(triangles) (triangles[18])
+
+#define TRIANGLE_SIZE (19)
+#define TRIANGLE_INDEX(idx,triangles) (&triangles[TRIANGLE_SIZE * idx])
+
+
 float triangle_intersect(float *pos, float *dir, float *triangle, float *res_uv)
 {
     float e1[3],e2[3],h[3],s[3],q[3];
