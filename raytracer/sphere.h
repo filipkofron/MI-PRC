@@ -14,11 +14,11 @@
  */
 
 #define SPHERE_POS(spheres) (&spheres[0])
-#define SPHERE_RADIUS(spheres) (spheres[2])
+#define SPHERE_RADIUS(spheres) (&spheres[2])
 #define SPHERE_AMBIENT(spheres) (&spheres[5])
 #define SPHERE_DIFFUSE(spheres) (&spheres[8])
 #define SPHERE_SPECULAR(spheres) (&spheres[11])
-#define SPHERE_TRANSPARENCY(spheres) (spheres[14])
+#define SPHERE_TRANSPARENCY(spheres) (&spheres[14])
 
 #define SPHERE_SIZE (15)
 #define SPHERE_INDEX(idx,spheres) (&spheres[SPHERE_SIZE * idx])

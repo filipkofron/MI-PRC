@@ -4,6 +4,23 @@
 #include "vec3.h"
 #include "rand.hpp"
 
+struct color_t
+{
+        float ambient[3];
+        float diffuse[3];
+        float specular[3];
+};
+
+struct scene_t
+{
+        float *spheres;
+        int spheres_count;
+        float *triangles;
+        int triangles_count;
+};
+
+extern scene_t scene;
+
 void trace_ray(
         float *color,
         float *pos,

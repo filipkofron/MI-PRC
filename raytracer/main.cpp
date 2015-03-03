@@ -3,6 +3,8 @@
 #include <unistd.h>
 #include "trace.h"
 #include "bmp.h"
+#include "sphere.h"
+#include "triangle.hpp"
 
 using namespace std;
 
@@ -63,6 +65,35 @@ int main()
 {
     int size = TEST_WIDTH * TEST_HEIGHT * 3;
     float *test = (float *) malloc(sizeof(float) * size);
+
+    float testSphere[SPHERE_SIZE];
+    float *pos = SPHERE_POS(testSphere);
+    pos[0] = 0;
+    pos[1] = 0;
+    pos[2] = 1000;
+    float *rad = SPHERE_RADIUS(testSphere);
+    *rad = 400;
+
+    float testTriangle[TRIANGLE_SIZE];
+    pos = TRIANGLE_POS(testTriangle);
+    pos[0] = -100;
+    pos[1] = -100;
+    pos[2] = 100;
+
+    pos[3] = 100;
+    pos[4] = -100;
+    pos[5] = 200;
+
+    pos[6] = 100;
+    pos[7] = 100;
+    pos[8] = 50;
+
+    scene.spheres = testSphere;
+    scene.spheres_count = 0;
+    scene.triangles = testTriangle;
+    scene.triangles_count = 1;
+
+
     trace_all(TEST_WIDTH, TEST_HEIGHT, test);
     FILE *file = fopen("/tmp/test.bmp", "wb+");
     srand(time(NULL));

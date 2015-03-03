@@ -1,6 +1,7 @@
 #include <stdint.h>
 #include "trace.h"
 #include "sphere.h"
+#include "triangle.hpp"
 
 #define DEPTH_MAX 3
 
@@ -11,122 +12,84 @@ vec [1] += 0.5f / (random.rand256() - 127); \
 vec [2] += 0.5f / (random.rand256() - 127); \
 } while (false)
 
-/*void trace_ray(
-        float *color,
-        float *pos,
-        float *dir,
-        float *spheres,
-        uint32_t spheres_count,
-        uint32_t depth,
-        FastRandom &random)
+scene_t scene;
+
+int find_intersect(float *pos, float *dir, float *new_pos, float *new_dir, float *normal, color_t *colors)
 {
-    int closest = -1;
-    int sphere_not_triangle = 0;
-    float dist = FLT_MAX;
-    float temp;
-    color[0] = color[1] = color[2] = 0.00f;
-    for(int i = 0; i < spheres_count; i++)
-    {
-        temp = sphere_intersect(pos, dir, &spheres[i * SPHERE_SIZE], spheres[i * SPHERE_SIZE + 3]);
-        if(temp < dist)
-        {
-            dist = temp;
-            closest = i;
-            sphere_not_triangle = 1;
-        }
-    }
-    if(closest > -1)
-    {
-        float temp_color[3];
-        float intersect_pos[3];
-        float normal[3];
-        float refl[3];
+    float dist_tr = FLT_MAX;
+    float dist_sp = FLT_MAX;
+    int closest_tr = -1;
+    int closest_sp = -1;
+    int sp_tr_none = -1;
+    int res = 0;
 
-        dist *= 0.995f;
-
-        sphere_intersect_pos(intersect_pos, pos, dir, dist);
-        sphere_normal(normal, intersect_pos, &spheres[closest * SPHERE_SIZE]);
-        reflection(refl, dir, normal);
-
-        if(depth < DEPTH_MAX)
-        {
-            trace_ray(temp_color, intersect_pos, refl, spheres, spheres_count, depth + 1, random);
-            add(color, temp_color);
-
-            RANDOM_MOVE_VEC(refl, random);
-            trace_ray(temp_color, intersect_pos, refl, spheres, spheres_count, depth + 1, random);
-            add(color, temp_color);
-
-            RANDOM_MOVE_VEC(refl, random);
-            trace_ray(temp_color, intersect_pos, refl, spheres, spheres_count, depth + 1, random);
-            add(color, temp_color);
-
-            RANDOM_MOVE_VEC(refl, random);
-            trace_ray(temp_color, intersect_pos, refl, spheres, spheres_count, depth + 1, random);
-            add(color, temp_color);
-
-            RANDOM_MOVE_VEC(refl, random);
-            trace_ray(temp_color, intersect_pos, refl, spheres, spheres_count, depth + 1, random);
-            add(color, temp_color);
-        }
-
-        mul(color, 0.20f);
-        add(color, &spheres[closest * SPHERE_SIZE + 8]);
-        mul(color, 0.50f);
-
-        float temp_sun[3];
-        sub(temp_sun, test_sun, intersect_pos);
-        normalize(temp_sun);
-        int has_intersect = 0;
-        for(int i = 0; i < spheres_count - 1; i++)
-        {
-            if(i != closest && sphere_intersect(intersect_pos, temp_sun, &spheres[i * SPHERE_SIZE], spheres[i * SPHERE_SIZE + 3]) < FLT_MAX)
-            {
-                has_intersect = 1;
-            }
-        }
-        if(has_intersect == 0)
-        {
-            normalize(temp_sun, test_sun);
-            float sun_dotp = dot(temp_sun, normal);
-            if(sun_dotp > 0.0f)
-            {
-                color[0] += sun_dotp;
-                color[1] += sun_dotp;
-                color[2] += sun_dotp;
-            }
-        }
-    }
-
-    color[0] += 0.05f;
-    color[1] += 0.05f;
-    color[2] += 0.05f;
-
-    float *my_color = &spheres[closest * SPHERE_SIZE + 4];
-    color[0] *= (0.8f * my_color[0] + 0.2f);
-    color[1] *= (0.8f * my_color[1] + 0.2f);
-    color[2] *= (0.8f * my_color[2] + 0.2f);
-}*/
-
-struct scene_t
-{
-    float *spheres;
-    uint32_t spheres_count;
-    float *triangles;
-    uint32_t triangles_count;
-} scene;
-
-int find_intersect(float *pos, float *dir, float *new_pos, float *new_dir, float *normal)
-{
+    float tr_uv[2];
     for(uint32_t i = 0; i < scene.spheres_count; i++)
     {
-
+        float temp = sphere_intersect(pos, dir, SPHERE_POS(SPHERE_INDEX(i, scene.spheres)), *SPHERE_RADIUS(SPHERE_INDEX(i, scene.spheres)));
+        if(temp < dist_sp)
+        {
+            dist_sp = temp;
+            closest_sp = i;
+        }
     }
     for(uint32_t i = 0; i < scene.triangles_count; i++)
     {
-
+        float temp = triangle_intersect(pos, dir, TRIANGLE_POS(TRIANGLE_INDEX(i, scene.triangles)), tr_uv);
+        if(temp < dist_tr)
+        {
+            dist_tr = temp;
+            closest_tr = i;
+        }
     }
-    return 0;
+
+
+    if(closest_sp != -1 && closest_tr != -1)
+    {
+        sp_tr_none = dist_sp <= dist_tr ? 0 : 1;
+    }
+    else
+    {
+        if(closest_sp != -1)
+        {
+            sp_tr_none = 0;
+        }
+        if(closest_tr != -1)
+        {
+            sp_tr_none = 1;
+        }
+    }
+
+    float *elem;
+    switch(sp_tr_none)
+    {
+        case 0:
+            sphere_intersect_pos(new_pos, pos, dir, dist_sp);
+            elem = SPHERE_INDEX(closest_sp, scene.spheres);
+            sphere_normal(normal, new_pos, SPHERE_POS(elem));
+            set_vec3(colors->ambient, SPHERE_AMBIENT(elem));
+            set_vec3(colors->diffuse, SPHERE_DIFFUSE(elem));
+            set_vec3(colors->specular, SPHERE_SPECULAR(elem));
+            res = 1;
+            break;
+        case 1:
+            elem = TRIANGLE_INDEX(closest_tr, scene.triangles);
+            triangle_pos(new_pos, tr_uv, TRIANGLE_POS(elem));
+            triangle_normal(normal, TRIANGLE_POS(elem));
+            set_vec3(colors->ambient, TRIANGLE_AMBIENT(elem));
+            set_vec3(colors->diffuse, TRIANGLE_DIFFUSE(elem));
+            set_vec3(colors->specular, TRIANGLE_SPECULAR(elem));
+            set_vec3(colors->specular, TRIANGLE_SPECULAR(elem));
+            res = 1;
+            break;
+    }
+
+    if(res)
+    {
+        reflection(new_dir, dir, normal);
+    }
+
+    return res;
 }
 
 void trace_ray(
@@ -136,11 +99,19 @@ void trace_ray(
         uint32_t depth,
         FastRandom &random)
 {
-    int closest_idx = -1;
+    float new_pos[3];
+    float new_dir[3];
+    float normal[3];
+    float none[3] = {0, 0, 0};
+    color_t colors;
 
-    if(closest_idx > -1)
+    if(find_intersect(pos, dir, new_pos, new_dir, normal, &colors))
     {
-
+        set_vec3(color, pos);
+    }
+    else
+    {
+        set_vec3(color, none);
     }
 }
 
@@ -166,7 +137,7 @@ void trace_rect(float *dest, int xs, int ys, int ws, int hs, int w, int h)
             const int num = 3;
             for(int i = 0; i < num; i++)
             {
-                trace_ray(temp_color, pos, dir, spheres_test, spheres_test_cnt, 0, random);
+                trace_ray(temp_color, pos, dir, 0, random);
                 add(color_offset, temp_color);
             }
             mul(color_offset, 1.0f / num);

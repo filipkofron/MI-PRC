@@ -32,6 +32,13 @@ inline void init_vec3(float *vec, float x, float y, float z)
     vec[2] = z;
 }
 
+inline void set_vec3(float *res, float *src)
+{
+    res[0] = src[0];
+    res[1] = src[1];
+    res[2] = src[2];
+}
+
 inline float dot(float *vecA, float *vecB)
 {
     return vecA[0] * vecB[0] + vecA[1] * vecB[1] + vecA[2] * vecB[2];
@@ -88,7 +95,7 @@ inline void cross(float *res, float *vecA, float *vecB)
 
 inline float length(float *vec)
 {
-    return sqrt(vec[0] * vec[0] + vec[1] * vec[1] + vec[2] * vec[2]);
+    return sqrtf(vec[0] * vec[0] + vec[1] * vec[1] + vec[2] * vec[2]);
 }
 
 inline void normalize(float *vec)
@@ -109,6 +116,7 @@ inline void reflection(float *res, float *dir, float *normal)
     float temp[3];
     mul(temp, normal, dotp * 2.0f);
     sub(res, dir, temp);
+    normalize(res);
 }
 
 inline void print_vec(float *vec)

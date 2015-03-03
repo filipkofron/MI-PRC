@@ -1,3 +1,6 @@
+#ifndef TRIANGLE_HPP
+#define TRIANGLE_HPP
+
 #include <float.h>
 #include "vec3.h"
 
@@ -18,13 +21,13 @@
 #define TRIANGLE_AMBIENT(triangles) (&triangles[9])
 #define TRIANGLE_DIFFUSE(triangles) (&triangles[12])
 #define TRIANGLE_SPECULAR(triangles) (&triangles[15])
-#define TRIANGLE_TRANSPARENCY(triangles) (triangles[18])
+#define TRIANGLE_TRANSPARENCY(triangles) (&triangles[18])
 
 #define TRIANGLE_SIZE (19)
 #define TRIANGLE_INDEX(idx,triangles) (&triangles[TRIANGLE_SIZE * idx])
 
 
-float triangle_intersect(float *pos, float *dir, float *triangle, float *res_uv)
+inline float triangle_intersect(float *pos, float *dir, float *triangle, float *res_uv)
 {
     float e1[3],e2[3],h[3],s[3],q[3];
     float a,f,u,v;
@@ -45,21 +48,19 @@ float triangle_intersect(float *pos, float *dir, float *triangle, float *res_uv)
 
     u = f * dot(s, h);
 
-    if(u < 0.0f || i > 1.0f)
+    if(u < 0.0f || v > 1.0f)
         return FLT_MAX;
 
     cross(q, s, e1);
-    v = f * dot(d, q);
+    v = f * dot(dir, q);
 
     if(u < 0.0f || u + v > 1.0f)
         return FLT_MAX;
 
-    t = f * dot(e2, q);
-
-    return t;
+    return f * dot(e2, q);
 }
 
-void triangle_pos(float *new_pos, float *uv, float *triangle)
+inline void triangle_pos(float *new_pos, float *uv, float *triangle)
 {
     float d = 1 - uv[0] - uv[1];
     float temp[3];
@@ -70,7 +71,7 @@ void triangle_pos(float *new_pos, float *uv, float *triangle)
     add(new_pos, temp);
 }
 
-void triangle_normal(float *normal, float *triangle)
+inline void triangle_normal(float *normal, float *triangle)
 {
     float e1[3];
     float e2[3];
@@ -80,3 +81,5 @@ void triangle_normal(float *normal, float *triangle)
 
     cross(normal, e1, e2);
 }
+
+#endif
