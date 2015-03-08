@@ -107,7 +107,13 @@ void trace_ray(
 
     if(find_intersect(pos, dir, new_pos, new_dir, normal, &colors))
     {
-        set_vec3(color, pos);
+        float test_center[3];
+        init_vec3(test_center, 0, 0, 0);
+        float test[3];
+        sub(test, pos, new_pos);
+        float len = length(test) / 3000.0f;
+        init_vec3(test, len, len, len);
+        set_vec3(color, test);
     }
     else
     {

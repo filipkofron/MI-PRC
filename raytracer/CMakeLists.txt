@@ -6,6 +6,8 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -pthread")
 set(SOURCE_FILES    bmp.h
                     bmp.cpp
                     main.cpp
+                    obj.cpp
+                    obj.hpp
                     rand.hpp
                     trace.h
                     trace.cpp

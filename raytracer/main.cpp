@@ -1,10 +1,13 @@
 #include <iostream>
 #include <thread>
 #include <unistd.h>
+#include <fstream>
+#include <bits/stl_bvector.h>
 #include "trace.h"
 #include "bmp.h"
 #include "sphere.h"
 #include "triangle.hpp"
+#include "obj.hpp"
 
 using namespace std;
 
@@ -95,7 +98,7 @@ int main()
 
 
     trace_all(TEST_WIDTH, TEST_HEIGHT, test);
-    FILE *file = fopen("/tmp/test.bmp", "wb+");
+    FILE *file = fopen("/home/kofee/test.bmp", "wb+");
     srand(time(NULL));
     if(file)
     {
@@ -108,5 +111,9 @@ int main()
         fprintf(stderr, "File could not be opened!\n");
     }
     free(test);
+
+    std::ifstream objf("/home/kofee/test.obj");
+    Obj obj(objf);
+    std::cout << "faces: " << obj.faces.size() << " vecs: " << obj.vecs.size() << std::endl;
     return 0;
 }
