@@ -2,7 +2,8 @@
 #define TRACE_H
 
 #include "vec3.h"
-#include "rand.hpp"
+#include "rand.h"
+#include "scene.h"
 
 struct color_t
 {
@@ -11,13 +12,6 @@ struct color_t
         float specular[3];
 };
 
-struct scene_t
-{
-        float *spheres;
-        int spheres_count;
-        float *triangles;
-        int triangles_count;
-};
 
 extern scene_t scene;
 
@@ -27,6 +21,8 @@ void trace_ray(
         float *dir,
         uint32_t depth,
         FastRandom &random);
+
+int find_intersect(float *pos, float *dir, float *new_pos, float *new_dir, float *normal, color_t *colors);
 void trace_rect(float *dest, int xs, int ys, int ws, int hs, int w, int h);
 
 #endif

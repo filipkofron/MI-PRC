@@ -14,7 +14,7 @@
  */
 
 #define SPHERE_POS(spheres) (&spheres[0])
-#define SPHERE_RADIUS(spheres) (&spheres[2])
+#define SPHERE_RADIUS(spheres) (&spheres[4])
 #define SPHERE_AMBIENT(spheres) (&spheres[5])
 #define SPHERE_DIFFUSE(spheres) (&spheres[8])
 #define SPHERE_SPECULAR(spheres) (&spheres[11])

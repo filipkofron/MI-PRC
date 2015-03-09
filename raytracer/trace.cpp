@@ -1,7 +1,8 @@
 #include <stdint.h>
 #include "trace.h"
 #include "sphere.h"
-#include "triangle.hpp"
+#include "triangle.h"
+#include "light.h"
 
 #define DEPTH_MAX 3
 
@@ -79,7 +80,6 @@ int find_intersect(float *pos, float *dir, float *new_pos, float *new_dir, float
             set_vec3(colors->ambient, TRIANGLE_AMBIENT(elem));
             set_vec3(colors->diffuse, TRIANGLE_DIFFUSE(elem));
             set_vec3(colors->specular, TRIANGLE_SPECULAR(elem));
-            set_vec3(colors->specular, TRIANGLE_SPECULAR(elem));
             res = 1;
             break;
     }
@@ -102,22 +102,28 @@ void trace_ray(
     float new_pos[3];
     float new_dir[3];
     float normal[3];
-    float none[3] = {0, 0, 0};
+    float none[3] = {0.0f, 0.3f, 0.8f};
     color_t colors;
 
     if(find_intersect(pos, dir, new_pos, new_dir, normal, &colors))
     {
-        float test_center[3];
-        init_vec3(test_center, 0, 0, 0);
-        float test[3];
-        sub(test, pos, new_pos);
-        float len = length(test) / 3000.0f;
-        init_vec3(test, len, len, len);
-        set_vec3(color, test);
+        float light_color[3];
+        calc_light(pos, dir, normal, light_color, &scene);
+        mul(color, colors.ambient, light_color);
+        //float test[3] = {0.5f, 0.5f, 0.5f};
+        //set_vec3(color, light_color);
     }
     else
     {
         set_vec3(color, none);
+
+        /////////// TEST
+
+        /*float t = 1.0f / 640.0f;
+        mul(pos, t);
+        float addf[3] = {0.5f, 0.5f, 0.5f};
+        add(pos, addf);
+        set_vec3(color, pos);*/
     }
 }
 

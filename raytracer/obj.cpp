@@ -1,6 +1,6 @@
 #include <fstream>
 #include <sstream>
-#include "obj.hpp"
+#include "obj.h"
 
 Obj::Obj(std::ifstream &ifs)
 {
@@ -9,8 +9,8 @@ Obj::Obj(std::ifstream &ifs)
 
 void Obj::loadFile(std::ifstream &ifs)
 {
-    vecs.clear();
-    faces.clear();
+    Object obj;
+    std::string name = "unknown";
     while(!ifs.fail())
     {
         std::string line;
@@ -24,7 +24,7 @@ void Obj::loadFile(std::ifstream &ifs)
         {
             vec3_t vec;
             ss >> vec.x >> vec.y >> vec.z;
-            vecs.push_back(vec);
+            obj.vecs.push_back(vec);
         }
         if(tag == "f")
         {
@@ -35,7 +35,7 @@ void Obj::loadFile(std::ifstream &ifs)
                 ss >> fi;
                 face.vecs.push_back(fi);
             }
-            faces.push_back(face);
+            obj.faces.push_back(face);
         }
     }
 }

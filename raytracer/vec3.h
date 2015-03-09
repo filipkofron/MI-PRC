@@ -79,6 +79,20 @@ inline void mul(float *vecA, float c)
     vecA[2] *= c;
 }
 
+inline void mul(float *vecA, float *vecB)
+{
+    vecA[0] *= vecB[0];
+    vecA[1] *= vecB[1];
+    vecA[2] *= vecB[2];
+}
+
+inline void mul(float *res, float *vecA, float *vecB)
+{
+    res[0] = vecA[0] * vecB[0];
+    res[1] = vecA[1] * vecB[1];
+    res[2] = vecA[2] * vecB[2];
+}
+
 inline void mul(float *res, float *vecA, float c)
 {
     res[0] = vecA[0] * c;
