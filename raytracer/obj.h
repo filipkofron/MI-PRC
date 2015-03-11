@@ -22,6 +22,7 @@ private:
     };
     struct Object
     {
+        Material material;
         std::vector<vec3_t> vecs;
         std::vector<Face> faces;
     };

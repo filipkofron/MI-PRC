@@ -107,11 +107,13 @@ void trace_ray(
 
     if(find_intersect(pos, dir, new_pos, new_dir, normal, &colors))
     {
-        float light_color[3];
-        calc_light(pos, dir, normal, light_color, &scene);
-        mul(color, colors.ambient, light_color);
+        float test[3] = {1.0f, 0.3f, 0.0f};
+        //float light_color[3];
+        //calc_light(pos, dir, normal, light_color, &scene);
+        //mul(color, colors.ambient, light_color);
         //float test[3] = {0.5f, 0.5f, 0.5f};
         //set_vec3(color, light_color);
+        set_vec3(color, test);
     }
     else
     {

@@ -48,7 +48,7 @@ inline float triangle_intersect(float *pos, float *dir, float *triangle, float *
 
     u = f * dot(s, h);
 
-    if(u < 0.0f || v > 1.0f)
+    if(u < 0.0f || u > 1.0f)
         return FLT_MAX;
 
     cross(q, s, e1);

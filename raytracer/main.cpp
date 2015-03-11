@@ -84,19 +84,6 @@ int main()
 
     float testTriangles[TRIANGLE_SIZE * 2];
     pos = TRIANGLE_POS(testTriangles);
-    pos[0] = -10;
-    pos[1] = -10;
-    pos[2] = 100;
-
-    pos[3] = 10;
-    pos[4] = -10;
-    pos[5] = 200;
-
-    pos[6] = 30;
-    pos[7] = 10;
-    pos[8] = 50;
-
-    pos = TRIANGLE_POS(TRIANGLE_INDEX(1, testTriangles));
 
     pos[0] = -100;
     pos[1] = 100;
@@ -110,6 +97,20 @@ int main()
     pos[7] = -300;
     pos[8] = 60;
 
+    pos = TRIANGLE_POS(TRIANGLE_INDEX(1, testTriangles));
+
+    pos[0] = -10;
+    pos[1] = -10;
+    pos[2] = 100;
+
+    pos[3] = 10;
+    pos[4] = -10;
+    pos[5] = 200;
+
+    pos[6] = 30;
+    pos[7] = 10;
+    pos[8] = 50;
+
     float *color = TRIANGLE_AMBIENT(testTriangles);
     color[0] = 1.0f;
     color[1] = 0.0f;
@@ -122,9 +123,9 @@ int main()
 
 
     scene.spheres = testSphere;
-    scene.spheres_count = 1;
+    scene.spheres_count = 0;
     scene.triangles = testTriangles;
-    scene.triangles_count = 0;
+    scene.triangles_count = 2;
 
 
     trace_all(TEST_WIDTH, TEST_HEIGHT, test);
