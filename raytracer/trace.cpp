@@ -14,8 +14,11 @@ vec [1] += 0.5f / (random.rand256() - 127); \
 vec [2] += 0.5f / (random.rand256() - 127); \
 } while (false)
 
+// scene instance
+// TODO: use ptrs and have 2 scenes at various memories
 scene_t scene;
 
+// checks whole scene for intersect
 int find_intersect(float *pos, float *dir, float *new_pos, float *new_dir, float *normal, color_t *colors)
 {
     float dist_tr = FLT_MAX;
@@ -98,6 +101,7 @@ int find_intersect(float *pos, float *dir, float *new_pos, float *new_dir, float
     return res;
 }
 
+// trace single ray
 void trace_ray(
         float *color,
         float *pos,
@@ -126,6 +130,7 @@ void trace_ray(
     }
 }
 
+// trace rectangle segment
 void trace_rect(float *dest, int xs, int ys, int ws, int hs, int w, int h)
 {
     float pos[3];

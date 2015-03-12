@@ -4,6 +4,8 @@
 #include <inttypes.h>
 #include <stdio.h>
 
+/* strictly byte aligned header of the bitmap file */
+/* Little Endian compatible only */
 struct bmp_header_t
 {
     uint16_t bm;
@@ -23,7 +25,10 @@ struct bmp_header_t
     uint32_t important_colors;
 } __attribute__((packed));
 
+/* initialize properties of given Bitmap header with provided size*/
 void init_bmp_header(bmp_header_t *header, uint32_t width, uint32_t height);
+
+/* save given RGB color array into file given by handle fout */
 void write_bmp(FILE *fout, float *colors, uint32_t width, uint32_t height);
 
 #endif

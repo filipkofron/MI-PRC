@@ -32,6 +32,7 @@ void thread_start(thread_data_t hax)
     trace_rect(hax.colors, hax.x, hax.y, hax.ws, hax.hs, hax.width, hax.height);
 }
 
+// start the tracing at given color array
 void trace_all(int width, int height, float *colors)
 {
     int ws = width / TEST_DIV;

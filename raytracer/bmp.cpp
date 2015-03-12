@@ -1,5 +1,6 @@
 #include "bmp.h"
 
+/* initialize properties of given Bitmap header with provided size*/
 void init_bmp_header(bmp_header_t *header, uint32_t width, uint32_t height)
 {
     uint32_t bmp_size = 54;
@@ -29,6 +30,7 @@ void init_bmp_header(bmp_header_t *header, uint32_t width, uint32_t height)
     header->important_colors = 0;
 }
 
+/* save given RGB color array into file given by handle fout */
 void write_bmp(FILE *fout, float *colors, uint32_t width, uint32_t height)
 {
     int padding = (width * 3) % 4;

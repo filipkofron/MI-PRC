@@ -23,6 +23,7 @@
 #define SPHERE_SIZE (14)
 #define SPHERE_INDEX(idx,spheres) (&spheres[SPHERE_SIZE * idx])
 
+/* calculate possible intersect */
 inline float sphere_intersect(float *pos, float *dir, float *center, float r)
 {
     float ray_pos_x = pos[0] - center[0];
@@ -50,6 +51,7 @@ inline float sphere_intersect(float *pos, float *dir, float *center, float r)
     return FLT_MAX;
 }
 
+/* retrieve position of the intersect */
 inline void sphere_intersect_pos(float *new_pos, float *old_pos, float *old_dir, float dist)
 {
     new_pos[0] = old_pos[0] + old_dir[0] * dist;
@@ -57,6 +59,7 @@ inline void sphere_intersect_pos(float *new_pos, float *old_pos, float *old_dir,
     new_pos[2] = old_pos[2] + old_dir[2] * dist;
 }
 
+/* calculare sphere normal at given position on the sphere */
 inline void sphere_normal(float *normal, float *pos, float *sphere)
 {
     normal[0] = pos[0] - sphere[0];

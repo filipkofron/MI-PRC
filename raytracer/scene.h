@@ -13,4 +13,7 @@ struct scene_t
     int light_count;
 };
 
+void init_scene(std::string name, int width, int height);
+void clean_scene();
+
 #endif

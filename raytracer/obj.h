@@ -5,6 +5,7 @@
 #include <map>
 #include "vec3.h"
 
+/* *.obj format structured class for loading and processing it */
 class Obj
 {
 private:
@@ -27,12 +28,14 @@ private:
         std::vector<Face> faces;
     };
 public:
+		// will construct the array from object
     Obj(std::ifstream &ifs);
     void loadObj(std::ifstream &ifs);
     void loadMtl(std::ifstream &ifs);
     std::map<std::string, Object> objects;
     std::map<std::string, Material> materials;
 
+		// allocate and build triangle array from the loaded obj instance
     float *buildTriangles(int &size);
 };
 
