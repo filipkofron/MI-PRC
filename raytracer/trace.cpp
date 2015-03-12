@@ -14,10 +14,6 @@ vec [1] += 0.5f / (random.rand256() - 127); \
 vec [2] += 0.5f / (random.rand256() - 127); \
 } while (false)
 
-// scene instance
-// TODO: use ptrs and have 2 scenes at various memories
-scene_t scene;
-
 // checks whole scene for intersect
 int find_intersect(float *pos, float *dir, float *new_pos, float *new_dir, float *normal, color_t *colors)
 {
@@ -134,6 +130,7 @@ void trace_ray(
 void trace_rect(float *dest, int xs, int ys, int ws, int hs, int w, int h)
 {
     float pos[3];
+    float rand_dir[3];
     float dir[3];
 
     FastRandom random;
@@ -155,7 +152,11 @@ void trace_rect(float *dest, int xs, int ys, int ws, int hs, int w, int h)
             const int num = 3;
             for(int i = 0; i < num; i++)
             {
-                trace_ray(temp_color, pos, dir, 0, random);
+                init_vec3(rand_dir, random.rand256(), random.rand256(), random.rand256());
+                mul(rand_dir, 0.000001f);
+                add(rand_dir, dir);
+                normalize(rand_dir);
+                trace_ray(temp_color, pos, rand_dir, 0, random);
                 add(color_offset, temp_color);
             }
             mul(color_offset, 1.0f / num);

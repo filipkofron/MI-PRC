@@ -12,9 +12,6 @@ struct color_t
         float specular[3];
 };
 
-
-extern scene_t scene;
-
 void trace_ray(
         float *color,
         float *pos,

@@ -1,6 +1,8 @@
 #ifndef SCENE_H
 #define SCENE_H
 
+#include <string>
+
 struct scene_t
 {
     float *spheres;
@@ -12,6 +14,8 @@ struct scene_t
     float *light;
     int light_count;
 };
+
+extern scene_t scene;
 
 void init_scene(std::string name, int width, int height);
 void clean_scene();

@@ -5,6 +5,8 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ggdb -O2 -std=c++11 -pthread")
 
 configure_file(sample.obj sample.obj COPYONLY)
 configure_file(sample.mtl sample.mtl COPYONLY)
+configure_file(sample.sph sample.sph COPYONLY)
+configure_file(sample.lit sample.lit COPYONLY)
 
 
 set(SOURCE_FILES    bmp.h

@@ -18,13 +18,16 @@ public:
     {
         std::unique_lock<std::mutex>(mutex);
 
-        x = rand();
-        y = rand();
-        z = rand();
-        w = rand();
+        while(x == 0 || y == 0 || z == 0 || w == 0)
+        {
+            x = (uint32_t) rand();
+            y = (uint32_t) rand();
+            z = (uint32_t) rand();
+            w = (uint32_t) rand();
+        }
     }
 
-    inline uint32_t rand(void)
+    inline uint32_t rand_full(void)
     {
         uint32_t t = x ^(x << 11);
         x = y;

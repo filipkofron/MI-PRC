@@ -80,41 +80,14 @@ int main()
     int size = TEST_WIDTH * TEST_HEIGHT * 3;
     float *test = (float *) malloc(sizeof(float) * size);
 
-    float testSpheres[SPHERE_SIZE * 3] =
-            {
-                    2, 0, 3, 1, 0, 0, 0, 0, 1, 0, 0.8f, 1.0f, 0.8f, 1.0f,
-                    -1.5f, -1, 6, 2, 0, 0, 0, 1, 0, 0, 0.8f, 1.0f, 0.8f, 1.0f,
-                    2.3, -2, 3, 1.5f, 0, 0, 0, 0, 0, 1, 0.8f, 1.0f, 0.8f, 1.0f,
-            };
-    float *pos, *col, *rad;
-
-    scene.spheres = testSpheres;
-    scene.spheres_count = 3;
-
-    float testLight[LIGHT_SIZE];
-    pos = LIGHT_POS(testLight);
-    pos[0] = 10000;
-    pos[1] = 10000;
-    pos[2] = -8000;
-    rad = LIGHT_RADIUS(testLight);
-    *rad = 500;
-    col = LIGHT_COLOR(testLight);
-    col[0] = 1.0f;
-    col[1] = 1.0f;
-    col[2] = 0.9f;
-
-    scene.light = testLight;
-    scene.light_count = 1;
-
-    std::ifstream objf("sample.obj");
-    Obj obj(objf);
-    float *trs = obj.buildTriangles(scene.triangles_count);
-    scene.triangles = trs;
-
+    init_scene("sample", TEST_WIDTH, TEST_HEIGHT);
 
     std::cout << "[Prep] >> Done." << std::endl;
 
     trace_all(TEST_WIDTH, TEST_HEIGHT, test);
+    clean_scene();
+
+
     FILE *file = fopen("/home/kofee/test.bmp", "wb+");
     srand(time(NULL));
     if(file)
@@ -128,8 +101,5 @@ int main()
         fprintf(stderr, "File could not be opened!\n");
     }
     free(test);
-
-
-    delete [] trs;
     return 0;
 }
