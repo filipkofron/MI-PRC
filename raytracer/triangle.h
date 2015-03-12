@@ -54,13 +54,13 @@ inline float triangle_intersect(float *pos, float *dir, float *triangle, float *
     cross(q, s, e1);
     v = f * dot(dir, q);
 
-    if(u < 0.0f || u + v > 1.0f)
+    if(v < 0.0f || u + v > 1.0f)
         return FLT_MAX;
 
     res_uv[0] = u;
     res_uv[1] = v;
 
-    return f * dot(e2, q);
+    return f * dot(e2, q) * 0.9999f;
 }
 
 inline void triangle_pos(float *new_pos, float *uv, float *triangle)

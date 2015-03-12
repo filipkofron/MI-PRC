@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include <iostream>
 #include "trace.h"
 #include "sphere.h"
 #include "triangle.h"
@@ -23,8 +24,10 @@ int find_intersect(float *pos, float *dir, float *new_pos, float *new_dir, float
     int closest_sp = -1;
     int sp_tr_none = -1;
     int res = 0;
+    float temp_dir_sub[3];
 
     float tr_uv[2];
+    float temp_tr_uv[2];
     for(uint32_t i = 0; i < scene.spheres_count; i++)
     {
         float temp = sphere_intersect(pos, dir, SPHERE_POS(SPHERE_INDEX(i, scene.spheres)), *SPHERE_RADIUS(SPHERE_INDEX(i, scene.spheres)));
@@ -36,11 +39,12 @@ int find_intersect(float *pos, float *dir, float *new_pos, float *new_dir, float
     }
     for(uint32_t i = 0; i < scene.triangles_count; i++)
     {
-        float temp = triangle_intersect(pos, dir, TRIANGLE_POS(TRIANGLE_INDEX(i, scene.triangles)), tr_uv);
+        float temp = triangle_intersect(pos, dir, TRIANGLE_POS(TRIANGLE_INDEX(i, scene.triangles)), temp_tr_uv);
         if(temp < dist_tr)
         {
             dist_tr = temp;
             closest_tr = i;
+            set_vec3(tr_uv, temp_tr_uv);
         }
     }
 
@@ -71,6 +75,7 @@ int find_intersect(float *pos, float *dir, float *new_pos, float *new_dir, float
             set_vec3(colors->ambient, SPHERE_AMBIENT(elem));
             set_vec3(colors->diffuse, SPHERE_DIFFUSE(elem));
             set_vec3(colors->specular, SPHERE_SPECULAR(elem));
+
             res = 1;
             break;
         case 1:
@@ -80,6 +85,7 @@ int find_intersect(float *pos, float *dir, float *new_pos, float *new_dir, float
             set_vec3(colors->ambient, TRIANGLE_AMBIENT(elem));
             set_vec3(colors->diffuse, TRIANGLE_DIFFUSE(elem));
             set_vec3(colors->specular, TRIANGLE_SPECULAR(elem));
+
             res = 1;
             break;
     }
@@ -102,30 +108,21 @@ void trace_ray(
     float new_pos[3];
     float new_dir[3];
     float normal[3];
-    float none[3] = {0.0f, 0.3f, 0.8f};
+    float none[3] = {0.12f, 0.1f, 0.11f};
     color_t colors;
 
     if(find_intersect(pos, dir, new_pos, new_dir, normal, &colors))
     {
-        float test[3] = {1.0f, 0.3f, 0.0f};
-        //float light_color[3];
-        //calc_light(pos, dir, normal, light_color, &scene);
+        normalize(normal);
+        float light_color[3];
+        calc_light(new_pos, normal, light_color, &scene, &colors);
         //mul(color, colors.ambient, light_color);
-        //float test[3] = {0.5f, 0.5f, 0.5f};
-        //set_vec3(color, light_color);
-        set_vec3(color, test);
+        set_vec3(color, light_color);
+        //set_vec3(color, new_dir);
     }
     else
     {
         set_vec3(color, none);
-
-        /////////// TEST
-
-        /*float t = 1.0f / 640.0f;
-        mul(pos, t);
-        float addf[3] = {0.5f, 0.5f, 0.5f};
-        add(pos, addf);
-        set_vec3(color, pos);*/
     }
 }
 
@@ -136,11 +133,13 @@ void trace_rect(float *dest, int xs, int ys, int ws, int hs, int w, int h)
 
     FastRandom random;
 
+    float norm = (w > h ? w : h) * 0.1f;
+
     for(int x = xs; x < (xs + ws); x++)
     {
         for(int y = ys; y < (ys + hs); y++)
         {
-            init_vec3(pos, x - 0.5f * w, y - 0.5f * h, 0.0f);
+            init_vec3(pos, (x - 0.5f * w) / norm, (y - 0.5f * h) / norm, -30.0f);
             float off_x = pos[0] * 0.001f;
             float off_y = pos[1] * 0.001f;
             init_vec3(dir, off_x, off_y, 1.0f);

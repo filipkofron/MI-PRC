@@ -6,9 +6,16 @@
 
 struct vec3_t
 {
-    float x;
-    float y;
-    float z;
+    union
+    {
+        struct
+        {
+            float x;
+            float y;
+            float z;
+        };
+        float arr[3];
+    };
 };
 
 inline void init_vec3(float *vec)

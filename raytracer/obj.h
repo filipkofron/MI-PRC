@@ -22,14 +22,18 @@ private:
     };
     struct Object
     {
-        Material material;
+        std::string material;
         std::vector<vec3_t> vecs;
         std::vector<Face> faces;
     };
 public:
     Obj(std::ifstream &ifs);
-    void loadFile(std::ifstream &ifs);
+    void loadObj(std::ifstream &ifs);
+    void loadMtl(std::ifstream &ifs);
     std::map<std::string, Object> objects;
+    std::map<std::string, Material> materials;
+
+    float *buildTriangles(int &size);
 };
 
 #endif

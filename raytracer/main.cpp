@@ -8,12 +8,13 @@
 #include "sphere.h"
 #include "triangle.h"
 #include "obj.h"
+#include "light.h"
 
 using namespace std;
 
 #define TEST_WIDTH 1280
 #define TEST_HEIGHT 1024
-#define TEST_DIV 1
+#define TEST_DIV 4
 
 struct thread_data_t
 {
@@ -50,10 +51,10 @@ void trace_all(int width, int height, float *colors)
             hax.width = width;
             hax.height = height;
 
-            trace_rect(hax.colors, hax.x, hax.y, hax.ws, hax.hs, hax.width, hax.height);
+            //trace_rect(hax.colors, hax.x, hax.y, hax.ws, hax.hs, hax.width, hax.height);
 
-            //std::thread *thread = new std::thread(thread_start, hax);
-            //threads[threads_cnt++] = thread;
+            std::thread *thread = new std::thread(thread_start, hax);
+            threads[threads_cnt++] = thread;
         }
     }
     for(int i = 0; i < threads_cnt; i++)
@@ -64,69 +65,53 @@ void trace_all(int width, int height, float *colors)
     delete [] threads;
 }
 
+/*
+    0 - 2: pos
+    4:        radius
+    5 - 7:  Ambient color
+    8 - 10: Diffuser color
+    11 - 13: Specular color
+    14:     transparency
+ */
+
 int main()
 {
     int size = TEST_WIDTH * TEST_HEIGHT * 3;
     float *test = (float *) malloc(sizeof(float) * size);
 
-    float testSphere[SPHERE_SIZE];
-    float *pos = SPHERE_POS(testSphere);
-    pos[0] = 0;
-    pos[1] = 0;
-    pos[2] = 1000;
-    float *rad = SPHERE_RADIUS(testSphere);
-    *rad = 400;
+    float testSpheres[SPHERE_SIZE * 3] =
+            {
+                    2, 0, 3, 1, 0, 0, 0, 0, 1, 0, 0.8f, 1.0f, 0.8f, 1.0f,
+                    -1.5f, -1, 6, 2, 0, 0, 0, 1, 0, 0, 0.8f, 1.0f, 0.8f, 1.0f,
+                    2.3, -2, 3, 1.5f, 0, 0, 0, 0, 0, 1, 0.8f, 1.0f, 0.8f, 1.0f,
+            };
+    float *pos, *col, *rad;
 
-    float *col = SPHERE_AMBIENT(testSphere);
-    col[0] = 0.6f;
-    col[1] = 0.0f;
-    col[2] = 1.0f;
+    scene.spheres = testSpheres;
+    scene.spheres_count = 3;
 
-    float testTriangles[TRIANGLE_SIZE * 2];
-    pos = TRIANGLE_POS(testTriangles);
+    float testLight[LIGHT_SIZE];
+    pos = LIGHT_POS(testLight);
+    pos[0] = 10000;
+    pos[1] = 10000;
+    pos[2] = -8000;
+    rad = LIGHT_RADIUS(testLight);
+    *rad = 500;
+    col = LIGHT_COLOR(testLight);
+    col[0] = 1.0f;
+    col[1] = 1.0f;
+    col[2] = 0.9f;
 
-    pos[0] = -100;
-    pos[1] = 100;
-    pos[2] = 40;
+    scene.light = testLight;
+    scene.light_count = 1;
 
-    pos[3] = 300;
-    pos[4] = 200;
-    pos[5] = 200;
-
-    pos[6] = 400;
-    pos[7] = -300;
-    pos[8] = 60;
-
-    pos = TRIANGLE_POS(TRIANGLE_INDEX(1, testTriangles));
-
-    pos[0] = -10;
-    pos[1] = -10;
-    pos[2] = 100;
-
-    pos[3] = 10;
-    pos[4] = -10;
-    pos[5] = 200;
-
-    pos[6] = 30;
-    pos[7] = 10;
-    pos[8] = 50;
-
-    float *color = TRIANGLE_AMBIENT(testTriangles);
-    color[0] = 1.0f;
-    color[1] = 0.0f;
-    color[2] = 0.0f;
-
-    color = TRIANGLE_AMBIENT(TRIANGLE_INDEX(1, testTriangles));
-    color[0] = 0.0f;
-    color[1] = 1.0f;
-    color[2] = 0.0f;
+    std::ifstream objf("sample.obj");
+    Obj obj(objf);
+    float *trs = obj.buildTriangles(scene.triangles_count);
+    scene.triangles = trs;
 
 
-    scene.spheres = testSphere;
-    scene.spheres_count = 0;
-    scene.triangles = testTriangles;
-    scene.triangles_count = 2;
-
+    std::cout << "[Prep] >> Done." << std::endl;
 
     trace_all(TEST_WIDTH, TEST_HEIGHT, test);
     FILE *file = fopen("/home/kofee/test.bmp", "wb+");
@@ -143,8 +128,7 @@ int main()
     }
     free(test);
 
-    std::ifstream objf("/home/kofee/test.obj");
-    //Obj obj(objf);
-    //std::cout << "faces: " << obj.faces.size() << " vecs: " << obj.vecs.size() << std::endl;
+
+    delete [] trs;
     return 0;
 }

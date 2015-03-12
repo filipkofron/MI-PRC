@@ -6,21 +6,21 @@
 
 /*
     0 - 2: pos
-    4:        radius
-    5 - 7:  Ambient color
-    8 - 10: Diffuser color
-    11 - 13: Specular color
-    14:     transparency
+    3:        radius
+    4 - 6:  Ambient color
+    7 - 9: Diffuser color
+    10 - 12: Specular color
+    13:     transparency
  */
 
 #define SPHERE_POS(spheres) (&spheres[0])
-#define SPHERE_RADIUS(spheres) (&spheres[4])
-#define SPHERE_AMBIENT(spheres) (&spheres[5])
-#define SPHERE_DIFFUSE(spheres) (&spheres[8])
-#define SPHERE_SPECULAR(spheres) (&spheres[11])
-#define SPHERE_TRANSPARENCY(spheres) (&spheres[14])
+#define SPHERE_RADIUS(spheres) (&spheres[3])
+#define SPHERE_AMBIENT(spheres) (&spheres[4])
+#define SPHERE_DIFFUSE(spheres) (&spheres[7])
+#define SPHERE_SPECULAR(spheres) (&spheres[10])
+#define SPHERE_TRANSPARENCY(spheres) (&spheres[13])
 
-#define SPHERE_SIZE (15)
+#define SPHERE_SIZE (14)
 #define SPHERE_INDEX(idx,spheres) (&spheres[SPHERE_SIZE * idx])
 
 inline float sphere_intersect(float *pos, float *dir, float *center, float r)
@@ -40,12 +40,12 @@ inline float sphere_intersect(float *pos, float *dir, float *center, float r)
     sol = -b - sqrt(t);
 
     if(sol > 0)
-        return sol;
+        return sol * 0.9999f;
 
     sol = -b + sqrt(t);
 
     if(sol > 0)
-        return sol;
+        return sol * 0.9999f;
 
     return FLT_MAX;
 }
