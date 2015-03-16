@@ -75,8 +75,30 @@ void trace_all(int width, int height, float *colors)
     14:     transparency
  */
 
-int main()
+void triangle_test()
 {
+    float pos[3] = {0.0f, 0.0f, -1.0f};
+    float dir[3] = {0.0f, -1.0f, -1.0f};
+    float res_uv[3] = {0.0f, 0.0f, 0.0f};
+    float res_pos[3] = {0.0f, 0.0f, 0.0f};
+
+    normalize(dir);
+
+    float triangle[TRIANGLE_SIZE] = {
+            -1.0f, 1.0f, 0.0f,
+            1.0f, 1.0f, 0.0f,
+            0.0f, -1.0f, 0.0f,
+
+            666.0f, 666.0f, 666.0f, 666.0f, 666.0f, 666.0f, 666.0f, 666.0f, 666.0f, 666.0f};
+    float res = triangle_intersect(pos, dir, triangle, res_uv);
+    triangle_pos(res_pos, res_uv, triangle);
+    std::cout << "result distance: " << res << std::endl;
+    std::cout << "result uv: " << res_uv[0] << ", " << res_uv[1] << std::endl;
+    std::cout << "result pos: " << res_pos[0] << ", " << res_pos[1] << ", " << res_pos[2] << std::endl;
+}
+
+int main()
+{/*
     int size = TEST_WIDTH * TEST_HEIGHT * 3;
     float *test = (float *) malloc(sizeof(float) * size);
 
@@ -100,6 +122,10 @@ int main()
     {
         fprintf(stderr, "File could not be opened!\n");
     }
-    free(test);
+    free(test);*/
+
+
+
+    triangle_test();
     return 0;
 }

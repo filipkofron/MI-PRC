@@ -23,7 +23,6 @@ int find_intersect(float *pos, float *dir, float *new_pos, float *new_dir, float
     int closest_sp = -1;
     int sp_tr_none = -1;
     int res = 0;
-    float temp_dir_sub[3];
 
     float tr_uv[2];
     float temp_tr_uv[2];
@@ -119,6 +118,7 @@ void trace_ray(
         //mul(color, colors.ambient, light_color);
         set_vec3(color, light_color);
         //set_vec3(color, new_dir);
+        //set_vec3(color, new_pos);
     }
     else
     {

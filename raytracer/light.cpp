@@ -49,11 +49,11 @@ void calc_light(float *ray_pos, float *obj_normal, float *light_res, scene_t *sc
         mul(specular, colors->specular, spec);
 
         color_t dummyCol;
-        if(find_intersect(ray_pos, dir_to_light_norm, dummy, dummy, dummy, &dummyCol))
+        /*if(find_intersect(ray_pos, dir_to_light_norm, dummy, dummy, dummy, &dummyCol))
         {
             set_vec3(diffuse, light_res);
             set_vec3(specular, light_res);
-        }
+        }*/
     }
 
     add(light_res, diffuse);
