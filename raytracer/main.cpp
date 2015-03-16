@@ -122,8 +122,8 @@ int main()
     {
         fprintf(stderr, "File could not be opened!\n");
     }
-    free(test);*/
-
+    free(test);
+*/
 
 
     triangle_test();

@@ -116,9 +116,9 @@ void trace_ray(
         float light_color[3];
         calc_light(new_pos, normal, light_color, &scene, &colors);
         //mul(color, colors.ambient, light_color);
-        set_vec3(color, light_color);
+        //set_vec3(color, light_color);
         //set_vec3(color, new_dir);
-        //set_vec3(color, new_pos);
+        set_vec3(color, new_pos);
     }
     else
     {
