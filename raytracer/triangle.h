@@ -60,30 +60,21 @@ inline float triangle_intersect(float *pos, float *dir, float *triangle, float *
     res_uv[0] = u;
     res_uv[1] = v;
 
-    return f * dot(e2, q) * 0.9999f;
+    float dist = f * dot(e2, q);
+
+    return dist > 0.00001f ? dist : FLT_MAX;
 }
 
 inline void triangle_pos(float *new_pos, float *uv, float *triangle)
 {
-    /*float d = 1 - uv[0] - uv[1];
+    float d = 1 - uv[0] - uv[1];
     float temp[3];
 
     mul(new_pos, &triangle[0], d);
     mul(temp, &triangle[3], uv[0]);
     add(new_pos, temp);
     mul(temp, &triangle[6], uv[1]);
-    add(new_pos, temp);*/
-
-    float e1[3], e2[3];
-
-    sub(e1, &triangle[3], &triangle[0]);
-    sub(e2, &triangle[6], &triangle[0]);
-
-    mul(e1, uv[0]);
-    mul(e2, uv[1]);
-
-    add(e1, e2);
-    add(new_pos, e1, &triangle[0]);
+    add(new_pos, temp);
 }
 
 inline void triangle_normal(float *normal, float *triangle)

@@ -31,7 +31,7 @@ int find_intersect(float *pos, float *dir, float *new_pos, float *new_dir, float
         float temp = sphere_intersect(pos, dir, SPHERE_POS(SPHERE_INDEX(i, scene.spheres)), *SPHERE_RADIUS(SPHERE_INDEX(i, scene.spheres)));
         if(temp < dist_sp)
         {
-            dist_sp = temp;
+            dist_sp = temp * 0.99999f;
             closest_sp = i;
         }
     }
@@ -40,7 +40,7 @@ int find_intersect(float *pos, float *dir, float *new_pos, float *new_dir, float
         float temp = triangle_intersect(pos, dir, TRIANGLE_POS(TRIANGLE_INDEX(i, scene.triangles)), temp_tr_uv);
         if(temp < dist_tr)
         {
-            dist_tr = temp;
+            dist_tr = temp * 0.99999f;
             closest_tr = i;
             set_vec3(tr_uv, temp_tr_uv);
         }
@@ -78,7 +78,9 @@ int find_intersect(float *pos, float *dir, float *new_pos, float *new_dir, float
             break;
         case 1:
             elem = TRIANGLE_INDEX(closest_tr, scene.triangles);
-            triangle_pos(new_pos, tr_uv, TRIANGLE_POS(elem));
+            mul(new_pos, dir, dist_tr);
+            add(new_pos, pos);
+            //triangle_pos(new_pos, tr_uv, TRIANGLE_POS(elem));
             triangle_normal(normal, TRIANGLE_POS(elem));
             set_vec3(colors->ambient, TRIANGLE_AMBIENT(elem));
             set_vec3(colors->diffuse, TRIANGLE_DIFFUSE(elem));
@@ -116,9 +118,16 @@ void trace_ray(
         float light_color[3];
         calc_light(new_pos, normal, light_color, &scene, &colors);
         //mul(color, colors.ambient, light_color);
-        //set_vec3(color, light_color);
+        set_vec3(color, light_color);
         //set_vec3(color, new_dir);
-        set_vec3(color, new_pos);
+        //set_vec3(color, new_pos);
+
+        /*float temp[3];
+        set_vec3(temp, new_dir);
+        temp[0] = fabs(0.5f - temp[0]);
+        temp[1] = fabs(0.5f - temp[1]);
+        temp[2] = fabs(0.5f - temp[2]);
+        set_vec3(color, temp);*/
     }
     else
     {
@@ -149,7 +158,7 @@ void trace_rect(float *dest, int xs, int ys, int ws, int hs, int w, int h)
             float *color_offset = &dest[(y * w + x) * 3];
             color_offset[0] = color_offset[1] = color_offset[2] = 0.0f;
             float temp_color[3];
-            const int num = 3;
+            const int num = 1;
             for(int i = 0; i < num; i++)
             {
                 init_vec3(rand_dir, random.rand256(), random.rand256(), random.rand256());
