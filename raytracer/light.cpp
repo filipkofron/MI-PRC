@@ -58,8 +58,7 @@ void calc_light(float *ray_pos, float *obj_normal, float *light_res, scene_t *sc
             set_vec3(diffuse, light_res);
             set_vec3(specular, light_res);
         }
+        add(light_res, diffuse);
+        add(light_res, specular);
     }
-
-    add(light_res, diffuse);
-    add(light_res, specular);
 }
