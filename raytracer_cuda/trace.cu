@@ -7,14 +7,6 @@
 
 #define DEPTH_MAX 3
 
-#define RANDOM_MOVE_VEC(vec,random) \
-do { \
-\
-	vec[0] += 0.5f / (random.rand256() - 127); \
-	vec[1] += 0.5f / (random.rand256() - 127); \
-	vec[2] += 0.5f / (random.rand256() - 127); \
-} while (false)
-
 	// checks whole scene for intersect
 __device__ int find_intersect(float *pos, float *dir, float *new_pos, float *new_dir, float *normal, color_t *colors, scene_t *scene)
 {
@@ -105,7 +97,6 @@ __device__ void trace_ray(
 	float *pos,
 	float *dir,
 	uint32_t depth,
-	FastRandom &random,
 	scene_t *scene)
 {
 	float new_pos[3];
@@ -144,8 +135,6 @@ __device__ void trace_rect(float *dest, int xs, int ys, int ws, int hs, int w, i
 	float rand_dir[3];
 	float dir[3];
 
-	FastRandom random;
-
 	float norm = (w > h ? w : h) * 0.1f;
 
 	for (int x = xs; x < (xs + ws); x++)
@@ -163,11 +152,8 @@ __device__ void trace_rect(float *dest, int xs, int ys, int ws, int hs, int w, i
 			const int num = 1;
 			for (int i = 0; i < num; i++)
 			{
-				init_vec3(rand_dir, (float) random.rand256(), (float) random.rand256(), (float) random.rand256());
-				mul(rand_dir, 0.000001f);
-				add(rand_dir, dir);
-				normalize(rand_dir);
-				trace_ray(temp_color, pos, rand_dir, 0, random, scene);
+				init_vec3(rand_dir);
+				trace_ray(temp_color, pos, rand_dir, 0, scene);
 				add(color_offset, temp_color);
 			}
 			mul(color_offset, 1.0f / num);

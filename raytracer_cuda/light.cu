@@ -53,7 +53,7 @@ __device__ void calc_light(float *ray_pos, float *obj_normal, float *light_res, 
 		mul(temp, dir_to_light_norm, 0.1f);
 		add(ray_pos, temp);
 		color_t dummyCol;
-		if (find_intersect(ray_pos, dir_to_light_norm, dummy, dummy, dummy, &dummyCol))
+		if (find_intersect(ray_pos, dir_to_light_norm, dummy, dummy, dummy, &dummyCol, scene))
 		{
 			set_vec3(diffuse, light_res);
 			set_vec3(specular, light_res);

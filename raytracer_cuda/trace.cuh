@@ -2,7 +2,6 @@
 #define TRACE_H
 
 #include "vec3.cuh"
-#include "rand.cuh"
 #include "scene.cuh"
 
 struct color_t
@@ -17,7 +16,6 @@ __device__ void trace_ray(
 	float *pos,
 	float *dir,
 	uint32_t depth,
-	FastRandom &random,
 	scene_t *scene);
 
 __device__ int find_intersect(float *pos, float *dir, float *new_pos, float *new_dir, float *normal, color_t *colors, scene_t *scene);

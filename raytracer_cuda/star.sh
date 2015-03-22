@@ -1,11 +1,14 @@
 #!/bin/bash
 
+OBJ_OPTS="-std=c++11 --relocatable-device-code true -c"
+LINK_OPTS="-std=c++11 -lcudadevrt"
+
 rm -f raytracer.run
 rm -f *.o
-nvcc -std=c++11 -c bmp.cu
-nvcc -std=c++11 -c kernel.cu
-nvcc -std=c++11 -c light.cu
-nvcc -std=c++11 -c obj.cu
-nvcc -std=c++11 -c scene.cu
-nvcc -std=c++11 -c trace.cu
-nvcc -std=c++11 *.o -o raytracer.run
+nvcc $OBJ_OPTS bmp.cu
+nvcc $OBJ_OPTS kernel.cu
+nvcc $OBJ_OPTS light.cu
+nvcc $OBJ_OPTS obj.cu
+nvcc $OBJ_OPTS scene.cu
+nvcc $OBJ_OPTS trace.cu
+nvcc $LINK_OPTS *.o -o raytracer.run
