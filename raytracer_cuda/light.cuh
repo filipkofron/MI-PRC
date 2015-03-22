@@ -1,6 +1,9 @@
 #ifndef LIGHT_H
 #define LIGHT_H
 
+#include "cuda_runtime.h"
+#include "device_launch_parameters.h"
+
 #include "scene.cuh"
 #include "trace.cuh"
 
@@ -28,6 +31,6 @@ byte positions
 /*
 calculate light at a given position of ray intersect
 */
-void calc_light(float *ray_pos, float *obj_normal, float *light_res, scene_t *scene, color_t *colors);
+__device__ void calc_light(float *ray_pos, float *obj_normal, float *light_res, scene_t *scene, color_t *colors);
 
 #endif

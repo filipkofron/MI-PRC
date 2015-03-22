@@ -2,7 +2,7 @@
 #include "trace.cuh"
 
 // simple max that will not evaluate twice
-static float my_max(float a, float b)
+__device__ float my_max(float a, float b)
 {
 	return a > b ? a : b;
 }
@@ -10,7 +10,7 @@ static float my_max(float a, float b)
 /*
 calculate light at a given position of ray intersect
 */
-void calc_light(float *ray_pos, float *obj_normal, float *light_res, scene_t *scene, color_t *colors)
+__device__ void calc_light(float *ray_pos, float *obj_normal, float *light_res, scene_t *scene, color_t *colors)
 {
 	float dir_to_light[3];
 	float dir_to_light_norm[3];

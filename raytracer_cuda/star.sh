@@ -2,10 +2,10 @@
 
 rm -f raytracer.run
 rm -f *.o
-nvcc -c bmp.cu
-nvcc -c kernel.cu
-nvcc -c light.cu
-nvcc -c obj.cu
-nvcc -c scene.cu
-nvcc -c trace.cu
-nvcc *.o -o raytracer.run
+nvcc -std=c++0x -c bmp.cu
+nvcc -std=c++0x -c kernel.cu
+nvcc -std=c++0x -c light.cu
+nvcc -std=c++0x -c obj.cu
+nvcc -std=c++0x -c scene.cu
+nvcc -std=c++0x -c trace.cu
+nvcc -std=c++0x *.o -o raytracer.run
