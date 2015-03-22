@@ -39,6 +39,7 @@ int main()
 	int hs = TEST_HEIGHT / 1024;
 
 	ray_kernel << < 1280, 1024 >> >(cuda_result_image, 1280, 1024, ws, hs, TEST_WIDTH, TEST_HEIGHT, dev_scene);
+	cudaDeviceSynchronize();
 
 	//trace_all(TEST_WIDTH, TEST_HEIGHT, test);
 	clean_scene();
