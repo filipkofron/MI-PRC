@@ -31,7 +31,7 @@ int main()
 		exit(1);
 	}
 
-	init_scene("sample", TEST_WIDTH, TEST_HEIGHT);
+	init_scene("sample/sample", TEST_WIDTH, TEST_HEIGHT);
 
 	std::cout << "[Prep] >> Done." << std::endl;
 
