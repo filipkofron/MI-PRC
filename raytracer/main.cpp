@@ -1,8 +1,6 @@
 #include <iostream>
 #include <thread>
-#include <unistd.h>
 #include <fstream>
-#include <bits/stl_bvector.h>
 #include "trace.h"
 #include "bmp.h"
 #include "sphere.h"
@@ -66,15 +64,6 @@ void trace_all(int width, int height, float *colors)
     delete [] threads;
 }
 
-/*
-    0 - 2: pos
-    4:        radius
-    5 - 7:  Ambient color
-    8 - 10: Diffuser color
-    11 - 13: Specular color
-    14:     transparency
- */
-
 int main()
 {
     int size = TEST_WIDTH * TEST_HEIGHT * 3;
@@ -88,7 +77,7 @@ int main()
     clean_scene();
 
 
-    FILE *file = fopen("/home/kofee/test.bmp", "wb+");
+    FILE *file = fopen("test.bmp", "wb+");
     srand(time(NULL));
     if(file)
     {
@@ -101,6 +90,9 @@ int main()
         fprintf(stderr, "File could not be opened!\n");
     }
     free(test);
+
+	std::cout << "All done." << std::endl;
+	std::cin.get();
 
     return 0;
 }
