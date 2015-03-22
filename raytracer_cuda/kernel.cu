@@ -33,10 +33,10 @@ int main()
 
 	std::cout << "[Prep] >> Done." << std::endl;
 
-	int ws = TEST_WIDTH / 128;
-	int hs = TEST_HEIGHT / 128;
+	int ws = TEST_WIDTH / 1;
+	int hs = TEST_HEIGHT / 1;
 
-	ray_kernel <<< 128, 128 >>>(cuda_result_image, 128, 128, ws, hs, TEST_WIDTH, TEST_HEIGHT);
+	ray_kernel <<< 1, 1 >>>(cuda_result_image, 1, 1, ws, hs, TEST_WIDTH, TEST_HEIGHT);
 
 	//trace_all(TEST_WIDTH, TEST_HEIGHT, test);
 	clean_scene();

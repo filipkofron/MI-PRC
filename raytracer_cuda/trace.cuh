@@ -12,7 +12,7 @@ struct color_t
 	float specular[3];
 };
 
-void trace_ray(
+__device__ void trace_ray(
 	float *color,
 	float *pos,
 	float *dir,
