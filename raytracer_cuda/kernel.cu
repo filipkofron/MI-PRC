@@ -17,7 +17,11 @@ __global__ void ray_kernel(float *result_image, int divB, int sizeB, int ws, int
 
 	int x = global_index / 1024;
 	int y = global_index % 1024;
-	trace_rect(result_image, x, y, ws, hs, width, height, &device_scene);
+	//trace_rect(result_image, x, y, ws, hs, width, height, &device_scene);
+	float *color_offset = &result_image[(y * w + x) * 3];
+	color_offset[0] = global_index / 1000.0;
+	color_offset[1] = global_index / 1000.0;
+	color_offset[2] = global_index / 1000.0;
 }
 
 int main()
