@@ -16,7 +16,7 @@ struct scene_t
 };
 
 extern scene_t host_scene;
-extern scene_t device_scene;
+extern scene_t dev_scene;
 
 void init_scene(std::string name, int width, int height);
 void clean_scene();

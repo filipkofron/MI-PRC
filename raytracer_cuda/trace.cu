@@ -16,7 +16,7 @@ do { \
 } while (false)
 
 	// checks whole scene for intersect
-__device__ int find_intersect(float *pos, float *dir, float *new_pos, float *new_dir, float *normal, color_t *colors)
+__device__ int find_intersect(float *pos, float *dir, float *new_pos, float *new_dir, float *normal, color_t *colors, scene_t *scene)
 {
 		float dist_tr = FLT_MAX;
 		float dist_sp = FLT_MAX;
@@ -27,18 +27,18 @@ __device__ int find_intersect(float *pos, float *dir, float *new_pos, float *new
 
 		float tr_uv[2];
 		float temp_tr_uv[2];
-		for (int i = 0; i < device_scene.spheres_count; i++)
+		for (int i = 0; i < scene->spheres_count; i++)
 		{
-			float temp = sphere_intersect(pos, dir, SPHERE_POS(SPHERE_INDEX(i, device_scene.spheres)), *SPHERE_RADIUS(SPHERE_INDEX(i, device_scene.spheres)));
+			float temp = sphere_intersect(pos, dir, SPHERE_POS(SPHERE_INDEX(i, scene->spheres)), *SPHERE_RADIUS(SPHERE_INDEX(i, scene->spheres)));
 			if (temp < dist_sp)
 			{
 				dist_sp = temp * 0.99999f;
 				closest_sp = i;
 			}
 		}
-		for (int i = 0; i < device_scene.triangles_count; i++)
+		for (int i = 0; i < scene->triangles_count; i++)
 		{
-			float temp = triangle_intersect(pos, dir, TRIANGLE_POS(TRIANGLE_INDEX(i, device_scene.triangles)), temp_tr_uv);
+			float temp = triangle_intersect(pos, dir, TRIANGLE_POS(TRIANGLE_INDEX(i, scene->triangles)), temp_tr_uv);
 			if (temp < dist_tr)
 			{
 				dist_tr = temp * 0.99999f;
@@ -69,7 +69,7 @@ __device__ int find_intersect(float *pos, float *dir, float *new_pos, float *new
 		{
 		case 0:
 			sphere_intersect_pos(new_pos, pos, dir, dist_sp);
-			elem = SPHERE_INDEX(closest_sp, device_scene.spheres);
+			elem = SPHERE_INDEX(closest_sp, scene->spheres);
 			sphere_normal(normal, new_pos, SPHERE_POS(elem));
 			set_vec3(colors->ambient, SPHERE_AMBIENT(elem));
 			set_vec3(colors->diffuse, SPHERE_DIFFUSE(elem));
@@ -78,7 +78,7 @@ __device__ int find_intersect(float *pos, float *dir, float *new_pos, float *new
 			res = 1;
 			break;
 		case 1:
-			elem = TRIANGLE_INDEX(closest_tr, device_scene.triangles);
+			elem = TRIANGLE_INDEX(closest_tr, scene->triangles);
 			mul(new_pos, dir, dist_tr);
 			add(new_pos, pos);
 			//triangle_pos(new_pos, tr_uv, TRIANGLE_POS(elem));
@@ -105,7 +105,8 @@ __device__ void trace_ray(
 	float *pos,
 	float *dir,
 	uint32_t depth,
-	FastRandom &random)
+	FastRandom &random,
+	scene_t *scene)
 {
 	float new_pos[3];
 	float new_dir[3];
@@ -113,11 +114,11 @@ __device__ void trace_ray(
 	float none[3] = { 0.12f, 0.1f, 0.11f };
 	color_t colors;
 
-	if (find_intersect(pos, dir, new_pos, new_dir, normal, &colors))
+	if (find_intersect(pos, dir, new_pos, new_dir, normal, &colors, scene))
 	{
 		normalize(normal);
 		float light_color[3];
-		calc_light(new_pos, normal, light_color, &device_scene, &colors);
+		calc_light(new_pos, normal, light_color, scene, &colors);
 		//mul(color, colors.ambient, light_color);
 		set_vec3(color, light_color);
 		//set_vec3(color, new_dir);
@@ -137,7 +138,7 @@ __device__ void trace_ray(
 }
 
 // trace rectangle segment
-__device__ void trace_rect(float *dest, int xs, int ys, int ws, int hs, int w, int h)
+__device__ void trace_rect(float *dest, int xs, int ys, int ws, int hs, int w, int h, scene_t *scene)
 {
 	float pos[3];
 	float rand_dir[3];
@@ -166,7 +167,7 @@ __device__ void trace_rect(float *dest, int xs, int ys, int ws, int hs, int w, i
 				mul(rand_dir, 0.000001f);
 				add(rand_dir, dir);
 				normalize(rand_dir);
-				trace_ray(temp_color, pos, rand_dir, 0, random);
+				trace_ray(temp_color, pos, rand_dir, 0, random, scene);
 				add(color_offset, temp_color);
 			}
 			mul(color_offset, 1.0f / num);

@@ -11,11 +11,11 @@
 #define TEST_WIDTH 1280
 #define TEST_HEIGHT 1024
 
-__global__ void ray_kernel(float *result_image, int divB, int sizeB, int ws, int hs, int width, int height)
+__global__ void ray_kernel(float *result_image, int divB, int sizeB, int ws, int hs, int width, int height, scene_t device_scene)
 {
 	int x = 0;
 	int y = 0;
-	trace_rect(result_image, x, y, ws, hs, width, height);
+	trace_rect(result_image, x, y, ws, hs, width, height, &device_scene);
 }
 
 int main()
@@ -36,7 +36,7 @@ int main()
 	int ws = TEST_WIDTH / 1;
 	int hs = TEST_HEIGHT / 1;
 
-	ray_kernel <<< 1, 1 >>>(cuda_result_image, 1, 1, ws, hs, TEST_WIDTH, TEST_HEIGHT);
+	ray_kernel <<< 1, 1 >>>(cuda_result_image, 1, 1, ws, hs, TEST_WIDTH, TEST_HEIGHT, dev_scene);
 
 	//trace_all(TEST_WIDTH, TEST_HEIGHT, test);
 	clean_scene();

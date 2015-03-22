@@ -10,6 +10,13 @@ Obj::Obj(std::ifstream &ifs)
 	loadObj(ifs);
 }
 
+inline void obj_set_vec3(float *res, float *src)
+{
+	res[0] = src[0];
+	res[1] = src[1];
+	res[2] = src[2];
+}
+
 void Obj::loadObj(std::ifstream &ifs)
 {
 	Object *obj = NULL;
@@ -113,19 +120,19 @@ void Obj::loadMtl(std::ifstream &ifs)
 		{
 			vec3_t vec;
 			ss >> vec.x >> vec.y >> vec.z;
-			set_vec3(mat->ambient, vec.arr);
+			obj_set_vec3(mat->ambient, vec.arr);
 		}
 		if (tag == "Kd")
 		{
 			vec3_t vec;
 			ss >> vec.x >> vec.y >> vec.z;
-			set_vec3(mat->diffuse, vec.arr);
+			obj_set_vec3(mat->diffuse, vec.arr);
 		}
 		if (tag == "Ks")
 		{
 			vec3_t vec;
 			ss >> vec.x >> vec.y >> vec.z;
-			set_vec3(mat->specular, vec.arr);
+			obj_set_vec3(mat->specular, vec.arr);
 		}
 		if (tag == "d" || tag == "Tr")
 		{
