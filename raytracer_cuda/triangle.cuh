@@ -27,7 +27,7 @@
 #define TRIANGLE_INDEX(idx,triangles) (&triangles[TRIANGLE_SIZE * idx])
 
 
-inline float triangle_intersect(float *pos, float *dir, float *triangle, float *res_uv)
+__device__ inline float triangle_intersect(float *pos, float *dir, float *triangle, float *res_uv)
 {
 	float e1[3], e2[3], h[3], s[3], q[3];
 	float a, f, u, v;
@@ -65,7 +65,7 @@ inline float triangle_intersect(float *pos, float *dir, float *triangle, float *
 	return dist > 0.00001f ? dist : FLT_MAX;
 }
 
-inline void triangle_pos(float *new_pos, float *uv, float *triangle)
+__device__ inline void triangle_pos(float *new_pos, float *uv, float *triangle)
 {
 	float d = 1 - uv[0] - uv[1];
 	float temp[3];
@@ -77,7 +77,7 @@ inline void triangle_pos(float *new_pos, float *uv, float *triangle)
 	add(new_pos, temp);
 }
 
-inline void triangle_normal(float *normal, float *triangle)
+__device__ inline void triangle_normal(float *normal, float *triangle)
 {
 	float e1[3];
 	float e2[3];

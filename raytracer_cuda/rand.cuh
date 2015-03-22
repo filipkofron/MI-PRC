@@ -19,7 +19,7 @@ protected:
 	uint32_t x, y, z, w;
 
 public:
-	FastRandom()
+	__device__ FastRandom()
 	{
 #ifndef __CUDACC__
 		std::unique_lock<std::mutex>(mutex);
@@ -34,7 +34,7 @@ public:
 		}
 	}
 
-	inline uint32_t rand_full(void)
+	__device__ inline uint32_t rand_full(void)
 	{
 		uint32_t t = x ^ (x << 11);
 		x = y;
@@ -43,7 +43,7 @@ public:
 		return w = w ^ (w >> 19) ^ t ^ (t >> 8);
 	}
 
-	inline uint32_t rand256(void)
+	__device__ inline uint32_t rand256(void)
 	{
 		uint32_t t = x ^ (x << 11);
 		x = y;
