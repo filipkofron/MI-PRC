@@ -13,15 +13,18 @@
 
 __global__ void ray_kernel(float *result_image, int divB, int sizeB, int ws, int hs, int width, int height, scene_t device_scene)
 {
-	int global_index = threadIdx.x + blockDim.x * threadIdx.y;
+	int block_index = threadIdx.x + blockDim.x * threadIdx.y;
 
-	int x = global_index / 1024;
-	int y = global_index % 1024;
+	int column = blockDim.x * blockIdx.x + threadIdx.x;
+	int row = blockDim.y * blockIdx.y + threadIdx.y;
+
+	int x = column;
+	int y = row;
 	//trace_rect(result_image, x, y, ws, hs, width, height, &device_scene);
 	float *color_offset = &result_image[(y * width + x) * 3];
-	color_offset[0] = global_index / 1000.0;
-	color_offset[1] = global_index / 1000.0;
-	color_offset[2] = global_index / 1000.0;
+	color_offset[0] = column / 1000.0;
+	color_offset[1] = row / 1000.0;
+	color_offset[2] = (column + row) / 1000.0;
 }
 
 int main()
