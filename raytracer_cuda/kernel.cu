@@ -8,7 +8,7 @@
 #include <cstdio>
 #include <iostream>
 
-#define TEST_WIDTH 1280
+#define TEST_WIDTH 1024
 #define TEST_HEIGHT 1024
 
 __global__ void ray_kernel(float *result_image, int divB, int sizeB, int ws, int hs, int width, int height, scene_t device_scene)
@@ -42,10 +42,10 @@ int main()
 
 	std::cout << "[Prep] >> Done." << std::endl;
 
-	int ws = TEST_WIDTH / 1280;
-	int hs = TEST_HEIGHT / 1024;
+	int ws = TEST_WIDTH / TEST_WIDTH;
+	int hs = TEST_HEIGHT / TEST_HEIGHT;
 
-	ray_kernel << < 1280, 1024 >> >(cuda_result_image, 1280, 1024, ws, hs, TEST_WIDTH, TEST_HEIGHT, dev_scene);
+	ray_kernel << < TEST_WIDTH, TEST_HEIGHT >> >(cuda_result_image, TEST_WIDTH, TEST_HEIGHT, ws, hs, TEST_WIDTH, TEST_HEIGHT, dev_scene);
 	cudaDeviceSynchronize();
 
 	//trace_all(TEST_WIDTH, TEST_HEIGHT, test);
