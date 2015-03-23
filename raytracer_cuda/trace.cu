@@ -129,45 +129,39 @@ __device__ void trace_ray(
 }
 
 // trace rectangle segment
-__device__ void trace_rect(float *dest, int xs, int ys, int ws, int hs, int w, int h, scene_t *scene)
+__device__ void trace_rect(float *dest, int x, int y, int ws, int hs, int w, int h, scene_t *scene)
 {
 	float pos[3];
 	float dir[3];
 
 	float norm = (w > h ? w : h) * 0.1f;
 
-	for (int x = xs; x < (xs + ws); x++)
+	init_vec3(pos, (x - 0.5f * w) / norm, (y - 0.5f * h) / norm, -30.0f);
+	float off_x = pos[0] * 0.001f;
+	float off_y = pos[1] * 0.001f;
+	init_vec3(dir, off_x, off_y, 1.0f);
+	normalize(dir);
+	float *color_offset = &dest[(y * w + x) * 3];
+	color_offset[0] = color_offset[1] = color_offset[2] = 0.0f;
+	float temp_color[3];
+	const int num = 1;
+	for (int i = 0; i < num; i++)
 	{
-		for (int y = ys; y < (ys + hs); y++)
-		{
-			init_vec3(pos, (x - 0.5f * w) / norm, (y - 0.5f * h) / norm, -30.0f);
-			float off_x = pos[0] * 0.001f;
-			float off_y = pos[1] * 0.001f;
-			init_vec3(dir, off_x, off_y, 1.0f);
-			normalize(dir);
-			float *color_offset = &dest[(y * w + x) * 3];
-			color_offset[0] = color_offset[1] = color_offset[2] = 0.0f;
-			float temp_color[3];
-			const int num = 1;
-			for (int i = 0; i < num; i++)
-			{
-				trace_ray(temp_color, pos, dir, 0, scene);
-				add(color_offset, temp_color);
-			}
-			mul(color_offset, 1.0f / num);
+		trace_ray(temp_color, pos, dir, 0, scene);
+		add(color_offset, temp_color);
+	}
+	mul(color_offset, 1.0f / num);
 
-			if (color_offset[0] > 1.0f)
-			{
-				color_offset[0] = 1.0f;
-			}
-			if (color_offset[1] > 1.0f)
-			{
-				color_offset[1] = 1.0f;
-			}
-			if (color_offset[2] > 1.0f)
-			{
-				color_offset[2] = 1.0f;
-			}
-		}
+	if (color_offset[0] > 1.0f)
+	{
+		color_offset[0] = 1.0f;
+	}
+	if (color_offset[1] > 1.0f)
+	{
+		color_offset[1] = 1.0f;
+	}
+	if (color_offset[2] > 1.0f)
+	{
+		color_offset[2] = 1.0f;
 	}
 }
