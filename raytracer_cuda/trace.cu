@@ -132,7 +132,6 @@ __device__ void trace_ray(
 __device__ void trace_rect(float *dest, int xs, int ys, int ws, int hs, int w, int h, scene_t *scene)
 {
 	float pos[3];
-	float rand_dir[3];
 	float dir[3];
 
 	float norm = (w > h ? w : h) * 0.1f;
@@ -152,8 +151,7 @@ __device__ void trace_rect(float *dest, int xs, int ys, int ws, int hs, int w, i
 			const int num = 1;
 			for (int i = 0; i < num; i++)
 			{
-				init_vec3(rand_dir);
-				trace_ray(temp_color, pos, rand_dir, 0, scene);
+				trace_ray(temp_color, pos, dir, 0, scene);
 				add(color_offset, temp_color);
 			}
 			mul(color_offset, 1.0f / num);

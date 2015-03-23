@@ -20,7 +20,8 @@ __global__ void ray_kernel(float *result_image, int divB, int sizeB, int ws, int
 
 	int x = threadIdx.x;
 	int y = blockIdx.x;
-	trace_rect(result_image, x, y, ws, hs, width, height, &device_scene);
+	//trace_rect(result_image, x, y, ws, hs, width, height, &device_scene);
+	trace_rect(result_image, x, y, 1, 1, blockDim.x, blockDim.y, &device_scene);
 	/*float *color_offset = &result_image[(y * width + x) * 3];
 	color_offset[0] = x / 1024.0f;
 	color_offset[1] = y / 1024.0f;
