@@ -11,21 +11,26 @@
 #define TEST_WIDTH 1024
 #define TEST_HEIGHT 1024
 
+static void HandleError(cudaError_t err, const char *file, int line)
+{
+	if (err != cudaSuccess)
+	{
+		printf("%s in %s at line %d\n", cudaGetErrorString(err), file, line);
+		exit(EXIT_FAILURE);
+	}
+}
+
+#define HANDLE_ERROR( err ) (HandleError( err, __FILE__, __LINE__ ))
+
 __global__ void ray_kernel(float *result_image, int divB, int sizeB, int ws, int hs, int width, int height, scene_t device_scene)
 {
-	/*int block_index = threadIdx.x + blockDim.x * threadIdx.y;
-
-	int column = blockDim.x * blockIdx.x + threadIdx.x;
-	int row = blockDim.y * blockIdx.y + threadIdx.y;*/
-
-	int x = threadIdx.x;
-	int y = blockIdx.x;
+	int x_t = threadIdx.x;
+	int y_b = blockIdx.x;
 	//trace_rect(result_image, x, y, ws, hs, width, height, &device_scene);
-	trace_rect(result_image, x, y, 1, 1, blockDim.x, blockDim.y, &device_scene);
-	/*float *color_offset = &result_image[(y * width + x) * 3];
-	color_offset[0] = x / 1024.0f;
-	color_offset[1] = y / 1024.0f;
-	color_offset[2] = 0;*/
+
+	for(int x = x_t * ws; x < (x_t + 1) * ws; x++)
+	for(int y = y_b * hs; y < (y_b + 1) * hs; y++)
+	trace_rect(result_image, x, y, ws, hs, width, height, &device_scene);
 }
 
 int main()
@@ -43,13 +48,15 @@ int main()
 
 	std::cout << "[Prep] >> Done." << std::endl;
 
-	int ws = TEST_WIDTH / TEST_WIDTH;
-	int hs = TEST_HEIGHT / TEST_HEIGHT;
+	int blocks = 1024;
+	int threads = 1024;
 
-	ray_kernel << < TEST_WIDTH, TEST_HEIGHT >> >(cuda_result_image, TEST_WIDTH, TEST_HEIGHT, ws, hs, TEST_WIDTH, TEST_HEIGHT, dev_scene);
+	int ws = TEST_WIDTH / blocks;
+	int hs = TEST_HEIGHT / threads;
+
+	ray_kernel <<< blocks, threads >>>(cuda_result_image, blocks, threads, ws, hs, TEST_WIDTH, TEST_HEIGHT, dev_scene);
 	cudaDeviceSynchronize();
 
-	//trace_all(TEST_WIDTH, TEST_HEIGHT, test);
 	clean_scene();
 
 	if (cudaMemcpy(host_result_image, cuda_result_image, sizeof(float)* size, cudaMemcpyDeviceToHost) != cudaSuccess)

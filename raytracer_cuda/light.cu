@@ -18,7 +18,7 @@ __device__ void calc_light(float *ray_pos, float *obj_normal, float *light_res, 
 	float incom_light_norm[3];
 	float refl[3];
 
-	float dummy[3];
+	float dummy[3] = {1.0f, 1.0f, 0.0f};
 
 	float diffuse[3];
 	float specular[3];

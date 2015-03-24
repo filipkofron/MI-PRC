@@ -99,33 +99,33 @@ __device__ void trace_ray(
 	uint32_t depth,
 	scene_t *scene)
 {
-	float new_pos[3];
-	float new_dir[3];
-	float normal[3];
+	float new_pos[3] = {0.0f, 0.0f, 0.0f};
+	float new_dir[3] = {0.0f, 0.0f, 0.0f};
+	float normal[3] = {0.0f, 0.0f, 0.0f};
 	float none[3] = { 0.12f, 0.1f, 0.11f };
 	color_t colors;
+
+set_vec3(color, none);
 
 	if (find_intersect(pos, dir, new_pos, new_dir, normal, &colors, scene))
 	{
 		normalize(normal);
-		float light_color[3];
+		float light_color[3] = {0.0f, 0.0f, 1.0f};
 		calc_light(new_pos, normal, light_color, scene, &colors);
-		//mul(color, colors.ambient, light_color);
 		set_vec3(color, light_color);
-		//set_vec3(color, new_dir);
-		//set_vec3(color, new_pos);
+	}
+	else	
+	{
+		set_vec3(color, none);
+	}
 
-		/*float temp[3];
-		set_vec3(temp, new_dir);
+/*		float temp[3];
+		set_vec3(temp, pos);
 		temp[0] = fabs(0.5f - temp[0]);
 		temp[1] = fabs(0.5f - temp[1]);
 		temp[2] = fabs(0.5f - temp[2]);
 		set_vec3(color, temp);*/
-	}
-	else
-	{
-		set_vec3(color, none);
-	}
+//	set_vec3(color, none);
 }
 
 // trace rectangle segment
@@ -135,6 +135,7 @@ __device__ void trace_rect(float *dest, int x, int y, int ws, int hs, int w, int
 	float dir[3];
 
 	float norm = (w > h ? w : h) * 0.1f;
+//	float norm = 1.0f;
 
 	init_vec3(pos, (x - 0.5f * w) / norm, (y - 0.5f * h) / norm, -30.0f);
 	float off_x = pos[0] * 0.001f;
@@ -144,6 +145,7 @@ __device__ void trace_rect(float *dest, int x, int y, int ws, int hs, int w, int
 	float *color_offset = &dest[(y * w + x) * 3];
 	color_offset[0] = color_offset[1] = color_offset[2] = 0.0f;
 	float temp_color[3];
+	init_vec3(temp_color);
 	const int num = 1;
 	for (int i = 0; i < num; i++)
 	{
