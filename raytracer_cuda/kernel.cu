@@ -48,8 +48,8 @@ int main()
 
 	std::cout << "[Prep] >> Done." << std::endl;
 
-	int blocks = 1024;
-	int threads = 1024;
+	int blocks = 512;
+	int threads = 512;
 
 	int ws = TEST_WIDTH / blocks;
 	int hs = TEST_HEIGHT / threads;
@@ -88,8 +88,8 @@ int main()
         return 1;
     }
 
-	std::cout << "All done, press any key to exit..." << std::endl;
-	std::cin.get();
+//	std::cout << "All done, press any key to exit..." << std::endl;
+//	std::cin.get();
 
     return 0;
 }

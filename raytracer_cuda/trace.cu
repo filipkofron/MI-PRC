@@ -118,14 +118,6 @@ set_vec3(color, none);
 	{
 		set_vec3(color, none);
 	}
-
-/*		float temp[3];
-		set_vec3(temp, pos);
-		temp[0] = fabs(0.5f - temp[0]);
-		temp[1] = fabs(0.5f - temp[1]);
-		temp[2] = fabs(0.5f - temp[2]);
-		set_vec3(color, temp);*/
-//	set_vec3(color, none);
 }
 
 // trace rectangle segment
@@ -134,10 +126,9 @@ __device__ void trace_rect(float *dest, int x, int y, int ws, int hs, int w, int
 	float pos[3];
 	float dir[3];
 
-	float norm = (w > h ? w : h) * 0.1f;
-//	float norm = 1.0f;
+	float norm = (w > h ? w : h);
 
-	init_vec3(pos, (x - 0.5f * w) / norm, (y - 0.5f * h) / norm, -30.0f);
+	init_vec3(pos, (x - 0.5f * w) / norm, (y - 0.5f * h) / norm, -60.0f);
 	float off_x = pos[0] * 0.001f;
 	float off_y = pos[1] * 0.001f;
 	init_vec3(dir, off_x, off_y, 1.0f);
@@ -154,16 +145,5 @@ __device__ void trace_rect(float *dest, int x, int y, int ws, int hs, int w, int
 	}
 	mul(color_offset, 1.0f / num);
 
-	if (color_offset[0] > 1.0f)
-	{
-		color_offset[0] = 1.0f;
-	}
-	if (color_offset[1] > 1.0f)
-	{
-		color_offset[1] = 1.0f;
-	}
-	if (color_offset[2] > 1.0f)
-	{
-		color_offset[2] = 1.0f;
-	}
+	
 }

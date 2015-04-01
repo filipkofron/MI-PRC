@@ -22,7 +22,7 @@ __device__ inline void init_vec3(float *vec)
 {
 	vec[0] = 0.0f;
 	vec[1] = 0.0f;
-	vec[2] = 0.0f;
+	vec[2] = 0.0f;	
 }
 
 __device__ inline void init_vec3(float *vec, float *src)
@@ -123,6 +123,22 @@ __device__ inline void normalize(float *vec)
 {
 	float len = length(vec);
 	mul(vec, 1.0f / len);
+}
+
+__device__ inline void clamp(float *vec)
+{
+	if (vec[0] > 1.0f)
+	{
+		vec[0] = 1.0f;
+	}
+	if (vec[1] > 1.0f)
+	{
+		vec[1] = 1.0f;
+	}
+	if (vec[2] > 1.0f)
+	{
+		vec[2] = 1.0f;
+	}
 }
 
 __device__ inline void normalize(float *res, float *vec)
