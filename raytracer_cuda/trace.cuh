@@ -4,13 +4,6 @@
 #include "vec3.cuh"
 #include "scene.cuh"
 
-struct color_t
-{
-	float ambient[3];
-	float diffuse[3];
-	float specular[3];
-};
-
 __device__ void trace_ray(
 	float *color,
 	float *pos,

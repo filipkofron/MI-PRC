@@ -8,8 +8,8 @@
 #include <cstdio>
 #include <iostream>
 
-#define TEST_WIDTH 1024
-#define TEST_HEIGHT 1024
+#define TEST_WIDTH 4096
+#define TEST_HEIGHT 4096
 
 static void HandleError(cudaError_t err, const char *file, int line)
 {
@@ -29,12 +29,12 @@ __global__ void ray_kernel(float *result_image, int divB, int sizeB, int ws, int
 	//trace_rect(result_image, x, y, ws, hs, width, height, &device_scene);
 
 	for(int x = x_t * ws; x < (x_t + 1) * ws; x++)
-	for(int y = y_b * hs; y < (y_b + 1) * hs; y++)
-	trace_rect(result_image, x, y, ws, hs, width, height, &device_scene);
+		for(int y = y_b * hs; y < (y_b + 1) * hs; y++)
+			trace_rect(result_image, x, y, ws, hs, width, height, &device_scene);
 }
 
 int main()
-{   
+{
 	int size = TEST_WIDTH * TEST_HEIGHT * 3;
 	float *host_result_image = (float *)malloc(sizeof(float) * size);
 	float *cuda_result_image;
