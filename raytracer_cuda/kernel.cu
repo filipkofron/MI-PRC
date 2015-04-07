@@ -42,7 +42,11 @@ __global__ void forward_kernel(job_t old_job, job_t new_job)
 __global__ void pps_kernel(int *dest, int *src, int powerof2Minus1)
 {
 	int uniq_id = threadIdx.x + blockIdx.x * blockDim.x;
-	dest[uniq_id] = src[uniq_id - powerof2Minus1] + src[uniq_id];
+
+	if(uniq_id >= (powerof2Minus1 << 1))
+		dest[uniq_id] = src[uniq_id - powerof2Minus1] + src[uniq_id];
+	else
+		dest[uniq_id] = src[uniq_id];
 }
 
 static void do_pps(int *arr, int size)
