@@ -114,14 +114,14 @@ set_vec3(color, none);
 		calc_light(new_pos, normal, light_color, scene, &colors);
 		set_vec3(color, light_color);
 	}
-	else	
+	else
 	{
 		set_vec3(color, none);
 	}
 }
 
 // trace rectangle segment
-__device__ void trace_rect(float *dest, int x, int y, int ws, int hs, int w, int h, scene_t *scene)
+/*__device__ void trace_rect(float *dest, int x, int y, int ws, int hs, int w, int h, scene_t *scene)
 {
 	float pos[3];
 	float dir[3];
@@ -145,5 +145,5 @@ __device__ void trace_rect(float *dest, int x, int y, int ws, int hs, int w, int
 	}
 	mul(color_offset, 1.0f / num);
 
-	
-}
+
+}*/

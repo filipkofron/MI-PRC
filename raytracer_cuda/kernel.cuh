@@ -1,12 +1,8 @@
 #ifndef KERNEL_CUH
 #define KERNEL_CUH
 
-typedef struct job_t
-{
-  int res_x;
-  int res_y;
-  float res[3];
-  int gather_num;
-};
+#include "job.cuh"
+
+__global__ void ray_kernel(job_t job, int depth, scene_t *scene);
 
 #endif
