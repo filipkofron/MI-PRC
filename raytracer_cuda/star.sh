@@ -15,23 +15,13 @@ echo "-> Cleaning previous run."
 rm -f raytracer.run
 rm -f *.o
 
-echo "-> Building bmp.cu"
-nvcc $OBJ_OPTS bmp.cu
+FILES="bmp.cu common.cu job.cu kernel.cu light.cu main.cu obj.cu scene.cu trace.cu"
 
-echo "-> Building kernel.cu"
-nvcc $OBJ_OPTS kernel.cu
-
-echo "-> Building light.cu"
-nvcc $OBJ_OPTS light.cu
-
-echo "-> Building obj.cu"
-nvcc $OBJ_OPTS obj.cu
-
-echo "-> Building scene.cu"
-nvcc $OBJ_OPTS scene.cu
-
-echo "-> Building trace.cu"
-nvcc $OBJ_OPTS trace.cu
+for FILE in $FILES
+do
+  echo "-> Building $FILE"
+  nvcc $OBJ_OPTS $FILE
+done
 
 echo "-> Linking raytracer.run"
 nvcc $LINK_OPTS *.o -o raytracer.run

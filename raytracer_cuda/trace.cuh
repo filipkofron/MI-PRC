@@ -1,6 +1,7 @@
 #ifndef TRACE_H
 #define TRACE_H
 
+#include "color.cuh"
 #include "vec3.cuh"
 #include "scene.cuh"
 

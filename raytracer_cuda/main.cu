@@ -27,15 +27,15 @@ static void HandleError(cudaError_t err, const char *file, int line)
 
 int main(int argc, char *argv[])
 {
-	int size = TEST_WIDTH * TEST_HEIGHT * 3;
-	float *host_result_image = (float *)malloc(sizeof(float) * size);
-	float *cuda_result_image;
-
 	if(argc != 4)
 	{
 		std::cerr << "Invalid number of arguments: " << (argc - 1) << " but 3 are required." << std::endl;
-    print_sage();
+    print_usage();
 	}
+
+	int size = TEST_WIDTH * TEST_HEIGHT * 3;
+	float *host_result_image = (float *)malloc(sizeof(float) * size);
+	float *cuda_result_image;
 
 	if (cudaMalloc(&cuda_result_image, sizeof(float)* size) != cudaSuccess)
 	{
