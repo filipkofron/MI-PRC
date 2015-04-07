@@ -14,6 +14,8 @@ job_t allocate_host_job(job_t job)
   safeMalloc(&host_job.image_dest, sizeof(float) * jobs_num);
   safeMalloc(&host_job.ray_pos, sizeof(float) * jobs_num);
   safeMalloc(&host_job.ray_dir, sizeof(float) * jobs_num);
+
+  return host_job;
 }
 
 void free_host_job(job_t *host_job)
@@ -30,7 +32,7 @@ void free_host_job(job_t *host_job)
   host_job->ray_dir = NULL;
 }
 
-job_t allocate_host_job(job_t job)
+job_t allocate_device_job(job_t job)
 {
   job_t dev_job = job;
   int jobs_num = calc_jobs(host_job.image_width * host_job.image_height);
@@ -39,7 +41,24 @@ job_t allocate_host_job(job_t job)
   cudaSafeMalloc(&dev_job.image_dest, sizeof(float) * jobs_num);
   cudaSafeMalloc(&dev_job.ray_pos, sizeof(float) * jobs_num);
   cudaSafeMalloc(&dev_job.ray_dir, sizeof(float) * jobs_num);
+
+  return dev_job;
 }
+
+void free_device_job(job_t *dev_job)
+{
+  cudaSafeFree(dev_job->gather_arr);
+  dev_job->gather_arr = NULL;
+  cudaSafeFree(dev_job->target_idx);
+  dev_job->target_idx = NULL;
+  cudaSafeFree(dev_job->image_dest);
+  dev_job->image_dest = NULL;
+  cudaSafeFree(dev_job->ray_pos);
+  dev_job->ray_pos = NULL;
+  cudaSafeFree(dev_job->ray_dir);
+  dev_job->ray_dir = NULL;
+}
+
 
 void copy_job_to_dev(job_t *dev_dest, job_t *host_src)
 {
@@ -65,18 +84,4 @@ void copy_job_to_host(job_t *host_dest, job_t *dev_src)
   cudaMemcpy(host_dest->image_dest, dev_src->image_dest, hc * sizeof(int), cudaMemcpyDeviceToHost);
   cudaMemcpy(host_dest->ray_pos, dev_src->ray_pos, hc * sizeof(int), cudaMemcpyDeviceToHost);
   cudaMemcpy(host_dest->ray_dir, dev_src->ray_dir, hc * sizeof(int), cudaMemcpyDeviceToHost);
-}
-
-void free_device_job(job_t *dev_job)
-{
-  cudaSafeFree(dev_job->gather_arr);
-  dev_job->gather_arr = NULL;
-  cudaSafeFree(dev_job->target_idx);
-  dev_job->target_idx = NULL;
-  cudaSafeFree(dev_job->image_dest);
-  dev_job->image_dest = NULL;
-  cudaSafeFree(dev_job->ray_pos);
-  dev_job->ray_pos = NULL;
-  cudaSafeFree(dev_job->ray_dir);
-  dev_job->ray_dir = NULL;
 }
