@@ -4,7 +4,7 @@
 
 int calc_jobs(int real_job_num)
 {
-  return (real_job_num / THREADS_PER_BLOCK) * THREADS_PER_BLOCK + ()(real_job_num % THREADS_PER_BLOCK) ? THREADS_PER_BLOCK : 0);
+  return (real_job_num / THREADS_PER_BLOCK) * THREADS_PER_BLOCK + ((real_job_num % THREADS_PER_BLOCK) ? THREADS_PER_BLOCK : 0);
 }
 
 job_t allocate_host_job(job_t job)
