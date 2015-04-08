@@ -125,7 +125,7 @@ void main_loop(job_t host_job, scene_t *scene)
 	job_t temp_job = host_job;
 	job_t curr_job = allocate_device_job(temp_job);
 	jobs.push(curr_job);
-
+/*
 	//buildup
 	while(depth < 4)
 	{
@@ -148,7 +148,7 @@ void main_loop(job_t host_job, scene_t *scene)
 		}
 		depth++;
 	}
-
+*/
 	std::cout << "[MainLoop] >> TODO: Unwind." << std::endl;
 	//unwind
 	// TODO: unwind & merge, free

@@ -51,7 +51,7 @@ int main(int argc, char *argv[])
 
 	std::cout << "[Prep] >> Done." << std::endl;
 
-	//main_loop(host_job, &dev_scene);
+	main_loop(host_job, &dev_scene);
 	cudaDeviceSynchronize();
 
 	clean_scene();
