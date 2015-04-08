@@ -77,7 +77,7 @@ __global__ void pps_kernel(int *dest, int *src, int powerof2)
 
 static void do_pps(int *arr, int size)
 {
-	std::cout << "[PPS] >> For size: " << size / 1024 << " kiB" << std::endl;
+	std::cout << "[PPS] >> For size: " << size * 4 << " B" << std::endl;
 	int d_max = ceil_log2(size);
 	int *temp = NULL;
 	cudaSafeMalloc((void **) &temp, sizeof(int) * size);
@@ -124,6 +124,7 @@ void main_loop(job_t host_job, scene_t *scene)
 
 	job_t temp_job = host_job;
 	job_t curr_job = allocate_device_job(temp_job);
+	jobs.push(curr_job);
 
 	//buildup
 	while(depth < 4)
@@ -138,8 +139,8 @@ void main_loop(job_t host_job, scene_t *scene)
 			temp_job.image_height = next_size / THREADS_PER_BLOCK;
 			temp_job = allocate_device_job(temp_job);
 			forward_kernel<<< BLOCKS_PER_JOB(size), size % THREADS_PER_BLOCK >>>(temp_job, curr_job);
-			jobs.push(curr_job);
 			curr_job = temp_job;
+			jobs.push(curr_job);
 		}
 		else
 		{
@@ -151,4 +152,10 @@ void main_loop(job_t host_job, scene_t *scene)
 	std::cout << "[MainLoop] >> TODO: Unwind." << std::endl;
 	//unwind
 	// TODO: unwind & merge, free
+	while(jobs.size() > 0)
+	{
+		job_t old_job = jobs.top();
+		jobs.pop();
+		free_device_job(&old_job);
+	}
 }
