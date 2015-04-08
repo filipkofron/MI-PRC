@@ -15,7 +15,6 @@ void print_usage()
 	std::cout << std::endl;
 }
 
-
 static void HandleError(cudaError_t err, const char *file, int line)
 {
 	if (err != cudaSuccess)

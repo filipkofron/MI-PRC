@@ -10,6 +10,7 @@ void cudaSafeMalloc(void **ptr, size_t size)
 		std::cerr << "Cannot allocate memory of size " << (size / 1024) << " kiB on device!" << std::endl;
 		exit(1);
 	}
+  cudaCheckErrors("Malloc fail");
 }
 
 void safeMalloc(void **ptr, size_t size)
