@@ -53,7 +53,7 @@ static void do_pps(int *arr, int size)
 {
 	int d_max = ceil_log2(size);
 	int *temp = NULL;
-	cudaSafeMalloc(&temp, sizeof(int) * size);
+	cudaSafeMalloc((void **) &temp, sizeof(int) * size);
 	for(int d = 1; d <= d_max; d++)
 	{
 		pps_kernel<<< BLOCKS_PER_JOB(size), THREADS_PER_BLOCK >>>(temp, arr, pow2(d - 1));
@@ -75,8 +75,8 @@ static int ray_step(job_t dev_job, scene_t *scene, int depth)
 	assert(size > 0);
 	ray_kernel<<< BLOCKS_PER_JOB(size), size % THREADS_PER_BLOCK >>>(dev_job, depth, scene);
 	int next_size = 0;
-	do_pps<<< BLOCKS_PER_JOB(size), size % THREADS_PER_BLOCK >>>(dev_job.target_idx, size);
-	cudaMemcpy(&dest_size, &dev_job.target_idx[size - 1], sizeof(int), cudaMemcpyDeviceToHost);
+	do_pps(dev_job.target_idx, size);
+	cudaMemcpy(&next_size, &dev_job.target_idx[size - 1], sizeof(int), cudaMemcpyDeviceToHost);
 	return next_size;
 }
 
@@ -92,7 +92,7 @@ void main_loop(job_t host_job, scene_t *scene)
 	//buildup
 	while(depth < 4)
 	{
-		int next_size = step(curr_job, scene, depth);
+		int next_size = ray_step(curr_job, scene, depth);
 		if(next_size)
 		{
 			int size = calc_jobs(next_size);

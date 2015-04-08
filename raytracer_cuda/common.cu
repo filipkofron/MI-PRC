@@ -1,5 +1,7 @@
 #include "common.cuh"
 
+#include <iostream>
+
 void cudaSafeMalloc(void **ptr, size_t size)
 {
   if (cudaMalloc(&ptr, size) != cudaSuccess)

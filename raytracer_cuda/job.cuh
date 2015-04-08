@@ -4,7 +4,7 @@
 #include "cuda_runtime.h"
 #include "device_launch_parameters.h"
 
-typedef struct job_t
+typedef struct
 {
   int image_width;
   int image_height;
@@ -15,7 +15,7 @@ typedef struct job_t
   float *ray_pos;
   float *ray_dir;
   int *target_idx;
-};
+} job_t;
 
 #define THREADS_PER_BLOCK 128
 #define BLOCKS_PER_JOB(size) ((size) / (THREADS_PER_BLOCK))

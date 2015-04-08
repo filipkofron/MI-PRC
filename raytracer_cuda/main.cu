@@ -1,6 +1,7 @@
 #include "cuda_runtime.h"
 #include "device_launch_parameters.h"
 #include "kernel.cuh"
+#include "bmp.cuh"
 
 #include <cstdio>
 #include <iostream>
@@ -31,9 +32,16 @@ int main(int argc, char *argv[])
 	{
 		std::cerr << "Invalid number of arguments: " << (argc - 1) << " but 3 are required." << std::endl;
     print_usage();
+		exit(1);
 	}
 
-	int size = TEST_WIDTH * TEST_HEIGHT * 3;
+	job_t host_job;
+
+	if(!(std::cin >> host_job.image_width)) print_usage();
+	if(!(std::cin >> host_job.image_height)) print_usage();
+	if(!(std::cin >> host_job.pass_count)) print_usage();
+
+	int size = host_job.image_width * host_job.image_height * 3;
 	float *host_result_image = (float *)malloc(sizeof(float) * size);
 	float *cuda_result_image;
 
