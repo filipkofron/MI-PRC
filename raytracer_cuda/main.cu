@@ -51,7 +51,7 @@ int main(int argc, char *argv[])
 		exit(1);
 	}
 
-	init_scene("sample/sample", TEST_WIDTH, TEST_HEIGHT);
+	init_scene("sample/sample", host_job.image_width, host_job.image_height);
 
 	std::cout << "[Prep] >> Done." << std::endl;
 
@@ -73,7 +73,7 @@ int main(int argc, char *argv[])
 	srand((unsigned int) time(NULL));
 	if (file)
 	{
-		write_bmp(file, host_result_image, TEST_WIDTH, TEST_HEIGHT);
+		write_bmp(file, host_result_image, host_job.image_width, host_job.image_height);
 		fflush(file);
 		fclose(file);
 	}
