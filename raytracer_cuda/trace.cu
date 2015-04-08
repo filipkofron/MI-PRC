@@ -93,6 +93,8 @@ __device__ int find_intersect(float *pos, float *dir, float *new_pos, float *new
 
 // trace single ray
 __device__ void trace_ray(
+	int *gather_arr,
+	int *target_idx,
 	float *color,
 	float *pos,
 	float *dir,
@@ -105,7 +107,7 @@ __device__ void trace_ray(
 	float none[3] = { 0.12f, 0.1f, 0.11f };
 	color_t colors;
 
-set_vec3(color, none);
+	set_vec3(color, none);
 
 	if (find_intersect(pos, dir, new_pos, new_dir, normal, &colors, scene))
 	{
@@ -113,10 +115,18 @@ set_vec3(color, none);
 		float light_color[3] = {0.0f, 0.0f, 1.0f};
 		calc_light(new_pos, normal, light_color, scene, &colors);
 		set_vec3(color, light_color);
+
+		set_vec3(pos, new_pos); // prep for reflection
+		set_vec3(dir, new_dir);
+
+		*gather_arr = 1;
+		*target_idx = 1;
 	}
 	else
 	{
 		set_vec3(color, none);
+		*gather_arr = 0;
+		*target_idx = 0;
 	}
 }
 

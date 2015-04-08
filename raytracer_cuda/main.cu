@@ -5,6 +5,7 @@
 
 #include <cstdio>
 #include <iostream>
+#include <sstream>
 
 void print_usage()
 {
@@ -37,43 +38,29 @@ int main(int argc, char *argv[])
 
 	job_t host_job;
 
-	if(!(std::cin >> host_job.image_width)) print_usage();
-	if(!(std::cin >> host_job.image_height)) print_usage();
-	if(!(std::cin >> host_job.pass_count)) print_usage();
+	std::stringstream ss;
+	ss << argv[0] << " " << argv[1] << " " << argv[2];
 
-	int size = host_job.image_width * host_job.image_height * 3;
-	float *host_result_image = (float *)malloc(sizeof(float) * size);
-	float *cuda_result_image;
+	if(!(ss >> host_job.image_width)) print_usage();
+	if(!(ss >> host_job.image_height)) print_usage();
+	if(!(ss >> host_job.pass_count)) print_usage();
 
-	if (cudaMalloc(&cuda_result_image, sizeof(float)* size) != cudaSuccess)
-	{
-		std::cerr << "Cannot allocate memory for result image on device!" << std::endl;
-		exit(1);
-	}
+	host_job = allocate_host_job(host_job);
 
 	init_scene("sample/sample", host_job.image_width, host_job.image_height);
 
 	std::cout << "[Prep] >> Done." << std::endl;
 
-	int blocks = 128;
-	int threads = 128;
-
-	//ray_kernel <<< blocks, threads >>>();
+	main_loop(host_job, &dev_scene);
 	cudaDeviceSynchronize();
 
 	clean_scene();
-
-	if (cudaMemcpy(host_result_image, cuda_result_image, sizeof(float) * size, cudaMemcpyDeviceToHost) != cudaSuccess)
-	{
-		std::cerr << "Cannot copy result image from device!" << std::endl;
-		exit(1);
-	}
 
 	FILE *file = fopen("test.bmp", "wb+");
 	srand((unsigned int) time(NULL));
 	if (file)
 	{
-		write_bmp(file, host_result_image, host_job.image_width, host_job.image_height);
+		write_bmp(file, host_job.image_dest, host_job.image_width, host_job.image_height);
 		fflush(file);
 		fclose(file);
 	}
@@ -81,8 +68,8 @@ int main(int argc, char *argv[])
 	{
 		fprintf(stderr, "File could not be opened!\n");
 	}
-	free(host_result_image);
-	cudaFree(cuda_result_image);
+
+	free_host_job(&host_job);
 
 	cudaError_t cudaStatus = cudaDeviceReset();
   if (cudaStatus != cudaSuccess)

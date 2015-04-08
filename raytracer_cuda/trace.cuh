@@ -6,6 +6,8 @@
 #include "scene.cuh"
 
 __device__ void trace_ray(
+	int *gather_arr,
+	int *target_idx,
 	float *color,
 	float *pos,
 	float *dir,
