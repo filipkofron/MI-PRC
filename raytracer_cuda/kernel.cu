@@ -77,6 +77,7 @@ __global__ void pps_kernel(int *dest, int *src, int powerof2)
 
 static void do_pps(int *arr, int size)
 {
+	std::cout << "[PPS] >> For size: " << size / 1024 << " kiB" << std::endl;
 	int d_max = ceil_log2(size);
 	int *temp = NULL;
 	cudaSafeMalloc((void **) &temp, sizeof(int) * size);
