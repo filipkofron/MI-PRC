@@ -63,12 +63,12 @@ __global__ void forward_kernel(job_t old_job, job_t new_job)
 	}
 }
 
-__global__ void pps_kernel(int *dest, int *src, int powerof2Minus1)
+__global__ void pps_kernel(int *dest, int *src, int powerof2)
 {
 	int uniq_id = threadIdx.x + blockIdx.x * blockDim.x;
 
-	if(uniq_id >= (powerof2Minus1 << 1))
-		dest[uniq_id] = src[uniq_id - powerof2Minus1] + src[uniq_id];
+	if(uniq_id >= powerof2)
+		dest[uniq_id] = src[uniq_id - powerof2] + src[uniq_id];
 	else
 		dest[uniq_id] = src[uniq_id];
 
@@ -80,9 +80,9 @@ static void do_pps(int *arr, int size)
 	int d_max = ceil_log2(size);
 	int *temp = NULL;
 	cudaSafeMalloc((void **) &temp, sizeof(int) * size);
-	for(int d = 1; d <= d_max; d++)
+	for(int d = 0; d < d_max; d++)
 	{
-		pps_kernel<<< BLOCKS_PER_JOB(size), THREADS_PER_BLOCK >>>(temp, arr, pow2(d - 1));
+		pps_kernel<<< BLOCKS_PER_JOB(size), THREADS_PER_BLOCK >>>(temp, arr, pow2(d));
 		int *swap = temp;
 		temp = arr;
 		arr = swap;
@@ -116,7 +116,7 @@ static int ray_step(job_t dev_job, scene_t *scene, int depth)
 
 void main_loop(job_t host_job, scene_t *scene)
 {
-	std::cout << "[MainLoop] >> Begin with image size: " << host_job.image_width << "x" << host_job.image_height << " for " << host_job.pass_count << "passes" << std::endl;
+	std::cout << "[MainLoop] >> Begin with image size: " << host_job.image_width << "x" << host_job.image_height << " for " << host_job.pass_count << " passes" << std::endl;
 	int depth = 0;
 
 	std::stack<job_t> jobs;
