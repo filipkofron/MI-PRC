@@ -32,7 +32,7 @@ __global__ void init_kernel(job_t job)
 	color_offset[0] = color_offset[1] = color_offset[2] = 0.0f;
 }
 
-__global__ void ray_kernel(job_t job, int depth, scene_t *scene)
+__global__ void ray_kernel(job_t job, int depth, scene_t scene)
 {
 	int uniq_id = threadIdx.x + blockIdx.x * blockDim.x;
 
@@ -110,7 +110,7 @@ static int ray_step(job_t dev_job, scene_t *scene, int depth)
 		cudaCheckErrors("init_kernel fail");
 	}
 
-	ray_kernel<<< BLOCKS_PER_JOB(size), THREADS_PER_BLOCK >>>(dev_job, depth, scene);
+	ray_kernel<<< BLOCKS_PER_JOB(size), THREADS_PER_BLOCK >>>(dev_job, depth, *scene);
 	cudaCheckErrors("ray_kernel fail");
 	int next_size = 0;
 	do_pps(dev_job.target_idx, size);
