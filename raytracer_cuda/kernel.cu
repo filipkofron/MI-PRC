@@ -45,7 +45,7 @@ __global__ void ray_kernel(job_t job, int depth, scene_t scene)
 		&job.ray_pos[uniq_id * 3],		// assign job ray position
 		&job.ray_dir[uniq_id * 3],		// assign job ray direction
 		depth,												// this shall stop the recursion
-		scene);												// const scene
+		&scene);												// const scene
 }
 
 __global__ void forward_kernel(job_t old_job, job_t new_job)
