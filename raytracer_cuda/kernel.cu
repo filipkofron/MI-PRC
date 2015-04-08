@@ -9,6 +9,7 @@
 #include <cstdio>
 #include <iostream>
 #include <stack>
+#include <assert.h>
 
 __global__ void ray_kernel(job_t job, int depth, scene_t *scene)
 {
