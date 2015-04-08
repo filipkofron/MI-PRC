@@ -116,7 +116,7 @@ static int ray_step(job_t dev_job, scene_t *scene, int depth)
 
 void main_loop(job_t host_job, scene_t *scene)
 {
-	std::cout << "[MainLoop] >> Begin." << std::endl;
+	std::cout << "[MainLoop] >> Begin with image size: " << host_job.image_width << "x" << host_job.image_height << " for " << host_job.pass_count << "passes" << std::endl;
 	int depth = 0;
 
 	std::stack<job_t> jobs;
