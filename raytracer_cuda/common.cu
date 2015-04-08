@@ -5,7 +5,7 @@
 void cudaSafeMalloc(void **ptr, size_t size)
 {
   std::cout << "Allocating " << size << " B on device!" << std::endl;
-  if (cudaMalloc(&ptr, size) != cudaSuccess)
+  if (cudaMalloc(ptr, size) != cudaSuccess)
 	{
 		std::cerr << "Cannot allocate memory of size " << (size / 1024) << " kiB on device!" << std::endl;
 		exit(1);
