@@ -110,8 +110,8 @@ static int ray_step(job_t dev_job, scene_t *scene, int depth)
 
 	ray_kernel<<< BLOCKS_PER_JOB(size), size % THREADS_PER_BLOCK >>>(dev_job, depth, scene);
 	int next_size = 0;
-	//do_pps(dev_job.target_idx, size);
-	//cudaMemcpy(&next_size, &dev_job.target_idx[size - 1], sizeof(int), cudaMemcpyDeviceToHost);
+	do_pps(dev_job.target_idx, size);
+	cudaMemcpy(&next_size, &dev_job.target_idx[size - 1], sizeof(int), cudaMemcpyDeviceToHost);
 	return next_size;
 }
 
