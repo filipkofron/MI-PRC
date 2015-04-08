@@ -39,11 +39,11 @@ int main(int argc, char *argv[])
 	job_t host_job;
 
 	std::stringstream ss;
-	ss << argv[0] << " " << argv[1] << " " << argv[2];
+	ss << argv[1] << " " << argv[2] << " " << argv[3];
 
-	if(!(ss >> host_job.image_width)) print_usage();
-	if(!(ss >> host_job.image_height)) print_usage();
-	if(!(ss >> host_job.pass_count)) print_usage();
+	if(!(ss >> host_job.image_width)) { print_usage(); exit(1); }
+	if(!(ss >> host_job.image_height)) { print_usage(); exit(1); }
+	if(!(ss >> host_job.pass_count)) { print_usage(); exit(1); }
 
 	host_job = allocate_host_job(host_job);
 
