@@ -88,6 +88,7 @@ static void do_pps(int *arr, int size)
 	for(int d = 0; d < d_max; d++)
 	{
 		pps_kernel<<< BLOCKS_PER_JOB(size), THREADS_PER_BLOCK >>>(temp, arr, pow2(d));
+		cudaDeviceSynchronize();
 		cudaCheckErrors("pps_kernel fail");
 		int *swap = temp;
 		temp = arr;
@@ -111,10 +112,12 @@ static int ray_step(job_t dev_job, scene_t *scene, int depth)
 		// we have to set the first pos to be that of screen
 		std::cout << "[MainLoop] >> Running init_kernel to setup job seed." << std::endl;
 		init_kernel<<< BLOCKS_PER_JOB(size), THREADS_PER_BLOCK >>>(dev_job);
+		cudaDeviceSynchronize();
 		cudaCheckErrors("init_kernel fail");
 	}
 
 	ray_kernel<<< BLOCKS_PER_JOB(size), THREADS_PER_BLOCK >>>(dev_job, depth, *scene);
+	cudaDeviceSynchronize();
 	cudaCheckErrors("ray_kernel fail");
 	int next_size = 0;
 	do_pps(dev_job.target_idx, size);
@@ -147,6 +150,7 @@ void main_loop(job_t host_job, scene_t *scene)
 			temp_job.image_height = next_size / THREADS_PER_BLOCK + (next_size % THREADS_PER_BLOCK ? 1 : 0);
 			temp_job = allocate_device_job(temp_job);
 			forward_kernel<<< BLOCKS_PER_JOB(size), THREADS_PER_BLOCK >>>(curr_job, temp_job);
+			cudaDeviceSynchronize();
 			curr_job = temp_job;
 			jobs.push(curr_job);
 		}
