@@ -52,14 +52,18 @@ __global__ void forward_kernel(job_t old_job, job_t new_job)
 {
 	int uniq_id = threadIdx.x + blockIdx.x * blockDim.x;
 
-	if(old_job.gather_arr[uniq_id])
-	{
-		int dest_id = old_job.target_idx[uniq_id];
+	int dest_id = old_job.target_idx[uniq_id] - 1;
+	int max_id = dest_id + old_job.gather_arr[uniq_id];
 
-		set_vec3(&new_job.ray_pos[dest_id * 3], &old_job.ray_pos[uniq_id * 3]);
+	printf("uniq: %i, idx: %i, max: %i\n", uniq_id, dest_id, max_id);
+
+	// remember that the PPS will start with 1
+	for(int dest_idx = dest_id; dest_idx < max_id; dest_idx++)
+	{
+		set_vec3(&new_job.ray_pos[dest_idx * 3], &old_job.ray_pos[uniq_id * 3]);
 
 		// TODO: distribute randomly, mabe both
-		set_vec3(&new_job.ray_dir[dest_id * 3], &old_job.ray_dir[uniq_id * 3]);
+		set_vec3(&new_job.ray_dir[dest_idx * 3], &old_job.ray_dir[uniq_id * 3]);
 	}
 }
 
