@@ -145,7 +145,7 @@ void main_loop(job_t host_job, scene_t *scene)
 			temp_job.image_width = THREADS_PER_BLOCK;
 			temp_job.image_height = next_size / THREADS_PER_BLOCK + (next_size % THREADS_PER_BLOCK ? 1 : 0);
 			temp_job = allocate_device_job(temp_job);
-			forward_kernel<<< BLOCKS_PER_JOB(size), THREADS_PER_BLOCK >>>(temp_job, curr_job);
+			forward_kernel<<< BLOCKS_PER_JOB(size), THREADS_PER_BLOCK >>>(curr_job, temp_job);
 			curr_job = temp_job;
 			jobs.push(curr_job);
 		}
