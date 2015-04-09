@@ -119,6 +119,7 @@ static int ray_step(job_t dev_job, scene_t *scene, int depth)
 	int next_size = 0;
 	do_pps(dev_job.target_idx, size);
 	cudaMemcpy(&next_size, &dev_job.target_idx[size - 1], sizeof(int), cudaMemcpyDeviceToHost);
+	cudaCheckErrors("MemCPY the PPS max fail");
 	return next_size;
 }
 
