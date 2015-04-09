@@ -148,6 +148,7 @@ void main_loop(job_t host_job, scene_t *scene)
 			forward_kernel<<< BLOCKS_PER_JOB(size), THREADS_PER_BLOCK >>>(curr_job, temp_job);
 			curr_job = temp_job;
 			jobs.push(curr_job);
+			break;
 		}
 		else
 		{

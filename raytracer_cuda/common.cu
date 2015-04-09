@@ -27,6 +27,7 @@ void safeMalloc(void **ptr, size_t size)
 void cudaSafeFree(void *ptr)
 {
   cudaFree(ptr);
+  cudaCheckErrors("Free fail");
 }
 
 void safeFree(void *ptr)
