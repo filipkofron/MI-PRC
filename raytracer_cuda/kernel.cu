@@ -85,6 +85,7 @@ static void do_pps(int *arr, int size)
 	int d_max = ceil_log2(size);
 	int *temp = NULL;
 	cudaSafeMalloc((void **) &temp, sizeof(int) * size);
+	int *orig_temp = temp;
 	for(int d = 0; d < d_max; d++)
 	{
 		pps_kernel<<< BLOCKS_PER_JOB(size), THREADS_PER_BLOCK >>>(temp, arr, pow2(d));
@@ -97,9 +98,10 @@ static void do_pps(int *arr, int size)
 	if(d_max & 1)
 	{
 		cudaMemcpy(arr, temp, size * sizeof(int), cudaMemcpyDeviceToDevice);
+		cudaCheckErrors("MemCPY PPS fail");
 	}
 
-	cudaSafeFree(temp);
+	cudaSafeFree(orig_temp);
 }
 
 static int ray_step(job_t dev_job, scene_t *scene, int depth)
