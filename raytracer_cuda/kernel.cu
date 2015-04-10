@@ -5,6 +5,7 @@
 #include "scene.cuh"
 #include "trace.cuh"
 #include "job.cuh"
+#include "kernel.cuh"
 
 #include <cstdio>
 #include <iostream>
@@ -19,8 +20,8 @@ __global__ void init_kernel(job_t job)
 	int kernel_y = uniq_id / job.image_width;
 
 	float norm = (job.image_width > job.image_height ? job.image_width : job.image_height);
-
-	init_vec3(&job.ray_pos[uniq_id * 3], (kernel_x - 0.5f * job.image_width) / norm, (kernel_y - 0.5f * job.image_height) / norm, -60.0f);
+	float inv_norm = 1.0f / norm;
+	init_vec3(&job.ray_pos[uniq_id * 3], (kernel_x - 0.5f * job.image_width) * inv_norm, (kernel_y - 0.5f * job.image_height) * inv_norm, -60.0f);
 
 	float off_x = job.ray_pos[uniq_id * 3] * 0.001f;
 	float off_y = job.ray_pos[uniq_id * 3 + 1] * 0.001f;
@@ -29,7 +30,7 @@ __global__ void init_kernel(job_t job)
 	normalize(&job.ray_dir[uniq_id * 3]);
 
 	float *color_offset = &job.image_dest[uniq_id * 3];
-	color_offset[0] = color_offset[1] = color_offset[2] = 0.0f;
+	init_vec3(color_offset, 0.0f, 0.0f, 0.0f);
 }
 
 __global__ void ray_kernel(job_t job, int depth, scene_t scene)
@@ -52,10 +53,10 @@ __global__ void forward_kernel(job_t old_job, job_t new_job)
 {
 	int uniq_id = threadIdx.x + blockIdx.x * blockDim.x;
 
-	int dest_id = old_job.target_idx[uniq_id] - 1;
+	int dest_id = old_job.target_idx[uniq_id] - old_job.gather_arr[uniq_id];
 	int max_id = dest_id + old_job.gather_arr[uniq_id];
 
-	printf("uniq: %i, idx: %i, max: %i\n", uniq_id, dest_id, max_id);
+	//printf("uniq: %i, dest_id: %i, max_id: %i\n", uniq_id, dest_id, max_id);
 
 	// remember that the PPS will start with 1
 	for(int dest_idx = dest_id; dest_idx < max_id; dest_idx++)
@@ -86,7 +87,7 @@ static void do_pps(int *arr, int size)
 	int *temp = NULL;
 	cudaSafeMalloc((void **) &temp, sizeof(int) * size);
 	int *orig_temp = temp;
-	for(int d = 0; d < d_max; d++)
+	for(int d = 0; d <= d_max; d++)
 	{
 		pps_kernel<<< BLOCKS_PER_JOB(size), THREADS_PER_BLOCK >>>(temp, arr, pow2(d));
 		cudaDeviceSynchronize();
@@ -95,7 +96,7 @@ static void do_pps(int *arr, int size)
 		temp = arr;
 		arr = swap;
 	}
-	if(d_max & 1)
+	if((~d_max) & 1)
 	{
 		cudaMemcpy(arr, temp, size * sizeof(int), cudaMemcpyDeviceToDevice);
 		cudaCheckErrors("MemCPY PPS fail");
@@ -118,6 +119,7 @@ static int ray_step(job_t dev_job, scene_t *scene, int depth)
 		cudaCheckErrors("init_kernel fail");
 	}
 
+	std::cout << "[MainLoop] >> Ray tracing kernel .. " << std::endl;
 	ray_kernel<<< BLOCKS_PER_JOB(size), THREADS_PER_BLOCK >>>(dev_job, depth, *scene);
 	cudaDeviceSynchronize();
 	cudaCheckErrors("ray_kernel fail");
@@ -140,7 +142,7 @@ void main_loop(job_t host_job, scene_t *scene)
 	jobs.push(curr_job);
 
 	//buildup
-	while(depth < 4)
+	while(depth < DEPTH_MAX)
 	{
 		std::cout << "[MainLoop] >> Stage " << depth << " start." << std::endl;
 		int next_size = ray_step(curr_job, scene, depth);
@@ -151,8 +153,15 @@ void main_loop(job_t host_job, scene_t *scene)
 			temp_job.image_width = THREADS_PER_BLOCK;
 			temp_job.image_height = next_size / THREADS_PER_BLOCK + (next_size % THREADS_PER_BLOCK ? 1 : 0);
 			temp_job = allocate_device_job(temp_job);
-			forward_kernel<<< BLOCKS_PER_JOB(size), THREADS_PER_BLOCK >>>(curr_job, temp_job);
 			cudaDeviceSynchronize();
+			cudaCheckErrors("pre-forward_kernel sync fail");
+			int old_jobs_size = calc_jobs(curr_job.image_width * curr_job.image_height);
+			std::cout << "[MainLoop oldJob] size: " << old_jobs_size << std::endl;
+			std::cout << "[MainLoop newJob] size: " << calc_jobs(temp_job.image_width * temp_job.image_height) << std::endl;
+			forward_kernel<<< BLOCKS_PER_JOB(old_jobs_size), THREADS_PER_BLOCK >>>(curr_job, temp_job);
+			cudaCheckErrors("forward_kernel fail");
+			cudaDeviceSynchronize();
+			cudaCheckErrors("forward_kernel sync fail");
 			curr_job = temp_job;
 			jobs.push(curr_job);
 		}
@@ -170,6 +179,11 @@ void main_loop(job_t host_job, scene_t *scene)
 	{
 		job_t old_job = jobs.top();
 		jobs.pop();
+
+		if(jobs.size() == 0)
+		{
+			copy_job_to_host(&host_job, &old_job);
+		}
 		free_device_job(&old_job);
 	}
 }

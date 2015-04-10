@@ -29,6 +29,7 @@ nvcc $LINK_OPTS *.o -o raytracer.run
 echo "-> Build done, running raytracer.."
 
 rm -f test.bmp
+rm -f *.o
 ./raytracer.run
 
 echo "-> All done."

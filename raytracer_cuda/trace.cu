@@ -5,8 +5,6 @@
 #include "triangle.cuh"
 #include "light.cuh"
 
-#define DEPTH_MAX 3
-
 	// checks whole scene for intersect
 __device__ int find_intersect(float *pos, float *dir, float *new_pos, float *new_dir, float *normal, color_t *colors, scene_t *scene)
 {
@@ -104,7 +102,7 @@ __device__ void trace_ray(
 	float new_pos[3] = {0.0f, 0.0f, 0.0f};
 	float new_dir[3] = {0.0f, 0.0f, 0.0f};
 	float normal[3] = {0.0f, 0.0f, 0.0f};
-	float none[3] = { 0.12f, 0.1f, 0.11f };
+	float none[3] = { 0.12f, 0.1f, 0.11f};
 	color_t colors;
 
 	set_vec3(color, none);
@@ -119,8 +117,9 @@ __device__ void trace_ray(
 		set_vec3(pos, new_pos); // prep for reflection
 		set_vec3(dir, new_dir);
 
-		*gather_arr = 1;
-		*target_idx = 1;
+		int c = 2;
+		*target_idx = c;
+		*gather_arr = c;
 	}
 	else
 	{
