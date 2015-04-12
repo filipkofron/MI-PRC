@@ -17,7 +17,7 @@ typedef struct
   int *target_idx;
 } job_t;
 
-#define THREADS_PER_BLOCK 32
+#define THREADS_PER_BLOCK 64
 #define BLOCKS_PER_JOB(size) ((size) / (THREADS_PER_BLOCK))
 
 int calc_jobs(int real_job_num);

@@ -106,9 +106,9 @@ __device__ void trace_ray(
 	float none[3] = { 0.12f, 0.1f, 0.11f};
 	color_t colors;
 
-	scene->light = &const_mem[LIGHT_SIZE * scene->light_count];
-	scene->spheres = &scene->light[SPHERE_SIZE * scene->spheres_count];
-	scene->triangles = &scene->spheres[TRIANGLE_SIZE * scene->triangles_count];
+	scene->light = const_mem;
+	scene->spheres = &scene->light[LIGHT_SIZE * scene->light_count];
+	scene->triangles = &scene->spheres[SPHERE_SIZE * scene->spheres_count];
 
 	set_vec3(color, none);
 
