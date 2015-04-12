@@ -49,6 +49,7 @@ __global__ void ray_kernel(job_t job, int depth, scene_t scene)
 		&job.ray_dir[uniq_id * 3],		// assign job ray direction
 		depth,												// this shall stop the recursion
 		&scene);												// const scene
+		clamp(&job.image_dest[uniq_id * 3]);
 }
 
 __global__ void forward_kernel(job_t old_job, job_t new_job)
@@ -68,6 +69,29 @@ __global__ void forward_kernel(job_t old_job, job_t new_job)
 		// TODO: distribute randomly, mabe both
 		set_vec3(&new_job.ray_dir[dest_idx * 3], &old_job.ray_dir[uniq_id * 3]);
 	}
+}
+
+__global__ void backward_kernel(job_t target, job_t prev)
+{
+	int uniq_id = threadIdx.x + blockIdx.x * blockDim.x;
+	int gath = target.gather_arr[uniq_id];
+	int dest_id = target.target_idx[uniq_id] - gath;
+	int max_id = dest_id + gath;
+
+	float *res_addr = &target.image_dest[uniq_id * 3];
+	float temp_res[3];
+	set_vec3(temp_res, res_addr);
+	float part = 1.0f / gath;
+
+	float temp[3];
+	for(int dest_idx = dest_id; dest_idx < max_id; dest_idx++)
+	{
+		set_vec3(temp, &prev.image_dest[dest_idx * 3]);
+		mul(temp, part);
+		add(temp_res, temp);
+	}
+	clamp(temp_res);
+	set_vec3(res_addr, temp_res);
 }
 
 __global__ void pps_kernel(int *dest, int *src, int powerof2)
@@ -149,7 +173,7 @@ void main_loop(job_t host_job, scene_t *scene)
 		std::cout << "[MainLoop] >> Stage " << depth << " start." << std::endl;
 		int next_size = ray_step(curr_job, scene, depth);
 		std::cout << "[MainLoop] >> Ray resulted in " << next_size << " following jobs." << std::endl;
-		if(next_size)
+		if(next_size && (depth + 1) < DEPTH_MAX)
 		{
 			int size = calc_jobs(next_size);
 			temp_job.image_width = THREADS_PER_BLOCK;
@@ -175,17 +199,33 @@ void main_loop(job_t host_job, scene_t *scene)
 	}
 
 	std::cout << "[MainLoop] >> TODO: Unwind." << std::endl;
-	//unwind
-	// TODO: unwind & merge, free
+
+	int back_i = 0;
+	job_t back_job;
 	while(jobs.size() > 0)
 	{
 		job_t old_job = jobs.top();
 		jobs.pop();
 
+		if(back_i)
+		{
+			int size = calc_jobs(old_job.image_width * old_job.image_height);
+			std::cout << "backward: " << back_i << std::endl;
+			backward_kernel<<< BLOCKS_PER_JOB(size), THREADS_PER_BLOCK >>>(old_job, back_job);
+		}
+
 		if(jobs.size() == 0)
 		{
 			copy_job_to_host(&host_job, &old_job);
 		}
-		free_device_job(&old_job);
+		if(back_i)
+		{
+			free_device_job(&back_job);
+		}
+		back_job = old_job;
+
+		back_i++;
 	}
+	if(back_i)
+		free_device_job(&back_job);
 }
