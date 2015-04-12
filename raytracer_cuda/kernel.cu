@@ -12,6 +12,8 @@
 #include <stack>
 #include <assert.h>
 
+float __constant__ const_mem[15 * 1024];
+
 __global__ void init_kernel(job_t job)
 {
 	int uniq_id = threadIdx.x + blockIdx.x * blockDim.x;
@@ -23,8 +25,8 @@ __global__ void init_kernel(job_t job)
 	float inv_norm = 1.0f / norm;
 	init_vec3(&job.ray_pos[uniq_id * 3], (kernel_x - 0.5f * job.image_width) * inv_norm, (kernel_y - 0.5f * job.image_height) * inv_norm, -60.0f);
 
-	float off_x = job.ray_pos[uniq_id * 3] * 0.001f;
-	float off_y = job.ray_pos[uniq_id * 3 + 1] * 0.001f;
+	float off_x = job.ray_pos[uniq_id * 3] * 0.1f;
+	float off_y = job.ray_pos[uniq_id * 3 + 1] * 0.1f;
 
 	init_vec3(&job.ray_dir[uniq_id * 3], off_x, off_y, 1.0f);
 	normalize(&job.ray_dir[uniq_id * 3]);

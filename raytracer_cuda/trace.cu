@@ -4,6 +4,7 @@
 #include "sphere.cuh"
 #include "triangle.cuh"
 #include "light.cuh"
+#include "kernel.cuh"
 
 	// checks whole scene for intersect
 __device__ int find_intersect(float *pos, float *dir, float *new_pos, float *new_dir, float *normal, color_t *colors, scene_t *scene)
@@ -105,6 +106,10 @@ __device__ void trace_ray(
 	float none[3] = { 0.12f, 0.1f, 0.11f};
 	color_t colors;
 
+	scene->light = &const_mem[LIGHT_SIZE * scene->light_count];
+	scene->spheres = &scene->light[SPHERE_SIZE * scene->spheres_count];
+	scene->triangles = &scene->spheres[TRIANGLE_SIZE * scene->triangles_count];
+
 	set_vec3(color, none);
 
 	if (find_intersect(pos, dir, new_pos, new_dir, normal, &colors, scene))
@@ -128,31 +133,3 @@ __device__ void trace_ray(
 		*target_idx = 0;
 	}
 }
-
-// trace rectangle segment
-/*__device__ void trace_rect(float *dest, int x, int y, int ws, int hs, int w, int h, scene_t *scene)
-{
-	float pos[3];
-	float dir[3];
-
-	float norm = (w > h ? w : h);
-
-	init_vec3(pos, (x - 0.5f * w) / norm, (y - 0.5f * h) / norm, -60.0f);
-	float off_x = pos[0] * 0.001f;
-	float off_y = pos[1] * 0.001f;
-	init_vec3(dir, off_x, off_y, 1.0f);
-	normalize(dir);
-	float *color_offset = &dest[(y * w + x) * 3];
-	color_offset[0] = color_offset[1] = color_offset[2] = 0.0f;
-	float temp_color[3];
-	init_vec3(temp_color);
-	const int num = 1;
-	for (int i = 0; i < num; i++)
-	{
-		trace_ray(temp_color, pos, dir, 0, scene);
-		add(color_offset, temp_color);
-	}
-	mul(color_offset, 1.0f / num);
-
-
-}*/

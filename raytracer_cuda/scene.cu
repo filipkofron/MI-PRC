@@ -4,6 +4,7 @@
 #include "light.cuh"
 #include "triangle.cuh"
 #include "common.cuh"
+#include "kernel.cuh"
 #include <vector>
 #include <fstream>
 #include <sstream>
@@ -129,14 +130,29 @@ void init_scene(std::string name, int width, int height)
 	dev_scene.spheres_count = host_scene.spheres_count;
 	dev_scene.triangles_count = host_scene.triangles_count;
 
-	cudaSafeMalloc((void **) &dev_scene.light, dev_scene.light_count * sizeof(float)* LIGHT_SIZE);
-	cudaMemcpy(dev_scene.light, host_scene.light, dev_scene.light_count * sizeof(float)* LIGHT_SIZE, cudaMemcpyHostToDevice);
+	float *mem = new float[15 * 1024];
+	float *mem_pos = mem;
+	std::cout << ">> SCENE _start_" << std::endl;
+	dev_scene.light = mem_pos;
+	mem_pos += dev_scene.light_count * LIGHT_SIZE;
+	memcpy(dev_scene.light, host_scene.light, dev_scene.light_count * sizeof(float) * LIGHT_SIZE);
 
-	cudaSafeMalloc((void **) &dev_scene.spheres, dev_scene.spheres_count * sizeof(float)* SPHERE_SIZE);
-	cudaMemcpy(dev_scene.spheres, host_scene.spheres, dev_scene.spheres_count * sizeof(float)* SPHERE_SIZE, cudaMemcpyHostToDevice);
+	dev_scene.spheres = mem_pos;
+	mem_pos += dev_scene.spheres_count * SPHERE_SIZE;
+	memcpy(dev_scene.spheres, host_scene.spheres, dev_scene.spheres_count * sizeof(float) * SPHERE_SIZE);
 
-	cudaSafeMalloc((void **) &dev_scene.triangles, dev_scene.triangles_count * sizeof(float)* TRIANGLE_SIZE);
-	cudaMemcpy(dev_scene.triangles, host_scene.triangles, dev_scene.triangles_count * sizeof(float)* TRIANGLE_SIZE, cudaMemcpyHostToDevice);
+	dev_scene.triangles = mem_pos;
+	mem_pos += dev_scene.triangles_count * TRIANGLE_SIZE;
+	memcpy(dev_scene.triangles, host_scene.triangles, dev_scene.triangles_count * sizeof(float) * TRIANGLE_SIZE);
+
+
+	cudaMemcpyToSymbol (const_mem, mem,
+		(dev_scene.light_count * TRIANGLE_SIZE
+		+ dev_scene.spheres_count * SPHERE_SIZE
+		+ dev_scene.triangles_count * TRIANGLE_SIZE) * sizeof(float));
+
+	std::cout << ">> SCENE _end_" << std::endl;
+	delete [] mem;
 }
 
 // cleanup the scene
@@ -145,8 +161,4 @@ void clean_scene()
 	delete[] host_scene.triangles;
 	delete[] host_scene.spheres;
 	delete[] host_scene.light;
-
-	cudaSafeFree(dev_scene.light);
-	cudaSafeFree(dev_scene.spheres);
-	cudaSafeFree(dev_scene.triangles);
 }
