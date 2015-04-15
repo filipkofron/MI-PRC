@@ -122,7 +122,7 @@ __device__ void trace_ray(
 		set_vec3(pos, new_pos); // prep for reflection
 		set_vec3(dir, new_dir);
 
-		int c = 2;
+		int c = 4;
 		*target_idx = c;
 		*gather_arr = c;
 	}

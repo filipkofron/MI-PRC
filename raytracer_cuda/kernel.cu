@@ -6,6 +6,7 @@
 #include "trace.cuh"
 #include "job.cuh"
 #include "kernel.cuh"
+#include "rand.cuh"
 
 #include <cstdio>
 #include <iostream>
@@ -55,7 +56,6 @@ __global__ void ray_kernel(job_t job, int depth, scene_t scene)
 __global__ void forward_kernel(job_t old_job, job_t new_job)
 {
 	int uniq_id = threadIdx.x + blockIdx.x * blockDim.x;
-
 	int dest_id = old_job.target_idx[uniq_id] - old_job.gather_arr[uniq_id];
 	int max_id = dest_id + old_job.gather_arr[uniq_id];
 
@@ -66,8 +66,27 @@ __global__ void forward_kernel(job_t old_job, job_t new_job)
 	{
 		set_vec3(&new_job.ray_pos[dest_idx * 3], &old_job.ray_pos[uniq_id * 3]);
 
-		// TODO: distribute randomly, mabe both
 		set_vec3(&new_job.ray_dir[dest_idx * 3], &old_job.ray_dir[uniq_id * 3]);
+	}
+}
+
+__global__ void rand_kernel(job_t old_job, job_t new_job, int rand_init)
+{
+	int uniq_id = threadIdx.x + blockIdx.x * blockDim.x;
+	int dest_id = old_job.target_idx[uniq_id] - old_job.gather_arr[uniq_id];
+	int max_id = dest_id + old_job.gather_arr[uniq_id];
+	float rv[3];
+
+	//printf("uniq: %i, dest_id: %i, max_id: %i\n", uniq_id, dest_id, max_id);
+	fast_random_t frand;
+	init_fast_random (frand, uniq_id, dest_id, rand_init);
+
+	// remember that the PPS will start with 1
+	for(int dest_idx = dest_id; dest_idx < max_id; dest_idx++)
+	{
+		init_vec3(rv, rand_f(frand), rand_f(frand), rand_f(frand));
+		//printf("rv0: %f, rv1: %f, rv2: %f\n", rv[0], rv[1], rv[2]);
+		add(&new_job.ray_dir[dest_idx * 3], rv);
 	}
 }
 
@@ -184,10 +203,19 @@ void main_loop(job_t host_job, scene_t *scene)
 			int old_jobs_size = calc_jobs(curr_job.image_width * curr_job.image_height);
 			std::cout << "[MainLoop oldJob] size: " << old_jobs_size << std::endl;
 			std::cout << "[MainLoop newJob] size: " << calc_jobs(temp_job.image_width * temp_job.image_height) << std::endl;
+
+			int rand_init = rand();
+
 			forward_kernel<<< BLOCKS_PER_JOB(old_jobs_size), THREADS_PER_BLOCK >>>(curr_job, temp_job);
 			cudaCheckErrors("forward_kernel fail");
 			cudaDeviceSynchronize();
 			cudaCheckErrors("forward_kernel sync fail");
+
+			rand_kernel<<< BLOCKS_PER_JOB(old_jobs_size), THREADS_PER_BLOCK >>>(curr_job, temp_job, rand_init);
+			cudaCheckErrors("rand_kernel fail");
+			cudaDeviceSynchronize();
+			cudaCheckErrors("rand_kernel sync fail");
+
 			curr_job = temp_job;
 			jobs.push(curr_job);
 		}

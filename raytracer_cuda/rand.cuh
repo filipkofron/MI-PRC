@@ -3,54 +3,50 @@
 
 #include <stdint.h>
 
-#ifndef __CUDACC__
-#include <mutex>
-#endif
+#define INIT_RAND(arr, size) \
+	for(int _arr_rand_init = 0; _arr_rand_init < size; _arr_rand_init++) \
+	{ \
+		arr[_arr_rand_init] = rand();\
+	}
 
-/* These state variables must be initialized so that they are not all zero. */
-
-#ifndef __CUDACC__
-static std::mutex mutex;
-#endif
-
-class FastRandom
+typedef struct
 {
-protected:
 	uint32_t x, y, z, w;
+} fast_random_t;
 
-public:
- FastRandom()
-	{
-#ifndef __CUDACC__
-		std::unique_lock<std::mutex>(mutex);
-#endif
+__device__ void init_fast_random(fast_random_t &fr, int uniq_id, int dest_id, int init)
+{
+	int init2 = init * 17;
+	int init3 = init2 * 59;
+	int init4 = init3 * 23;
+	fr.x = uniq_id * init + dest_id * init;
+	fr.y = uniq_id * init2 + dest_id * init2;
+	fr.z = uniq_id * init3 + dest_id * init3;
+	fr.w = uniq_id * init4 + dest_id * init4;
+}
 
-		while (x == 0 || y == 0 || z == 0 || w == 0)
-		{
-			x = (uint32_t)rand();
-			y = (uint32_t)rand();
-			z = (uint32_t)rand();
-			w = (uint32_t)rand();
-		}
-	}
+__device__ uint32_t rand_full(fast_random_t &fr)
+{
+	uint32_t t = fr.x ^ (fr.x << 11);
+	fr.x = fr.y;
+	fr.y = fr.z;
+	fr.z = fr.w;
+	return fr.w = fr.w ^ (fr.w >> 19) ^ t ^ (t >> 8);
+}
 
-    inline uint32_t rand_full(void)
-	{
-		uint32_t t = x ^ (x << 11);
-		x = y;
-		y = z;
-		z = w;
-		return w = w ^ (w >> 19) ^ t ^ (t >> 8);
-	}
+__device__ float rand_f(fast_random_t &fr)
+{
+	uint32_t r = rand_full(fr);
+	return 100.0f / ((r & 0xFFFF) + 1);
+}
 
-	inline uint32_t rand256(void)
-	{
-		uint32_t t = x ^ (x << 11);
-		x = y;
-		y = z;
-		z = w;
-		return (w = w ^ (w >> 19) ^ t ^ (t >> 8)) & 255;
-	}
-};
+__device__ uint32_t rand256(fast_random_t &fr)
+{
+	uint32_t t = fr.x ^ (fr.x << 11);
+	fr.x = fr.y;
+	fr.y = fr.z;
+	fr.z = fr.w;
+	return (fr.w = fr.w ^ (fr.w >> 19) ^ t ^ (t >> 8)) & 255;
+}
 
 #endif

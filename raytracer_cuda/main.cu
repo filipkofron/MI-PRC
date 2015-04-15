@@ -69,6 +69,8 @@ void init_cuda()
 
 int main(int argc, char *argv[])
 {
+	srand(time(NULL));
+
 	init_cuda();
 	cudaDeviceSynchronize();
 	cudaCheckErrors("Init fail.");
