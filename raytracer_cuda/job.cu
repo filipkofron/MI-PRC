@@ -70,9 +70,9 @@ void copy_job_to_dev(job_t *dev_dest, job_t *host_src)
   int hc = calc_jobs(host_src->image_width * host_src->image_height);
   cudaMemcpy(dev_dest->gather_arr, host_src->gather_arr, hc * sizeof(int), cudaMemcpyHostToDevice);
   cudaMemcpy(dev_dest->target_idx, host_src->target_idx, hc * sizeof(int), cudaMemcpyHostToDevice);
-  cudaMemcpy(dev_dest->image_dest, host_src->image_dest, hc * sizeof(int) * 3, cudaMemcpyHostToDevice);
-  cudaMemcpy(dev_dest->ray_pos, host_src->ray_pos, hc * sizeof(int) * 3, cudaMemcpyHostToDevice);
-  cudaMemcpy(dev_dest->ray_dir, host_src->ray_dir, hc * sizeof(int) * 3, cudaMemcpyHostToDevice);
+  cudaMemcpy(dev_dest->image_dest, host_src->image_dest, hc * sizeof(float) * 3, cudaMemcpyHostToDevice);
+  cudaMemcpy(dev_dest->ray_pos, host_src->ray_pos, hc * sizeof(float) * 3, cudaMemcpyHostToDevice);
+  cudaMemcpy(dev_dest->ray_dir, host_src->ray_dir, hc * sizeof(float) * 3, cudaMemcpyHostToDevice);
 }
 
 void copy_job_to_host(job_t *host_dest, job_t *dev_src)
@@ -83,7 +83,7 @@ void copy_job_to_host(job_t *host_dest, job_t *dev_src)
   int hc = calc_jobs(dev_src->image_width * dev_src->image_height);
   cudaMemcpy(host_dest->gather_arr, dev_src->gather_arr, hc * sizeof(int), cudaMemcpyDeviceToHost);
   cudaMemcpy(host_dest->target_idx, dev_src->target_idx, hc * sizeof(int), cudaMemcpyDeviceToHost);
-  cudaMemcpy(host_dest->image_dest, dev_src->image_dest, hc * sizeof(int) * 3, cudaMemcpyDeviceToHost);
-  cudaMemcpy(host_dest->ray_pos, dev_src->ray_pos, hc * sizeof(int) * 3, cudaMemcpyDeviceToHost);
-  cudaMemcpy(host_dest->ray_dir, dev_src->ray_dir, hc * sizeof(int) * 3, cudaMemcpyDeviceToHost);
+  cudaMemcpy(host_dest->image_dest, dev_src->image_dest, hc * sizeof(float) * 3, cudaMemcpyDeviceToHost);
+  cudaMemcpy(host_dest->ray_pos, dev_src->ray_pos, hc * sizeof(float) * 3, cudaMemcpyDeviceToHost);
+  cudaMemcpy(host_dest->ray_dir, dev_src->ray_dir, hc * sizeof(float) * 3, cudaMemcpyDeviceToHost);
 }

@@ -14,7 +14,7 @@
 void print_usage()
 {
 	std::cout << "Usage:" << std::endl;
-	std::cout << "raytracer IMAGE_WIDTH IMAGE_HEIGHT PASS_COUNT" << std::endl;
+	std::cout << "raytracer IMAGE_WIDTH IMAGE_HEIGHT PASS_COUNT DEPTH" << std::endl;
 	std::cout << "PASS_COUNT is the number of passes to average random differences." << std::endl;
 	std::cout << std::endl;
 }
@@ -76,9 +76,9 @@ int main(int argc, char *argv[])
 	cudaCheckErrors("Init fail.");
 
 	const clock_t whole_time_begin = clock();
-	if(argc != 4)
+	if(argc != 5)
 	{
-		std::cerr << "Invalid number of arguments: " << (argc - 1) << " but 3 are required." << std::endl;
+		std::cerr << "Invalid number of arguments: " << (argc - 1) << " but 4 are required." << std::endl;
     print_usage();
 		exit(1);
 	}
@@ -86,11 +86,12 @@ int main(int argc, char *argv[])
 	job_t host_job;
 
 	std::stringstream ss;
-	ss << argv[1] << " " << argv[2] << " " << argv[3];
+	ss << argv[1] << " " << argv[2] << " " << argv[3] << " " << argv[4];
 
 	if(!(ss >> host_job.image_width)) { print_usage(); exit(1); }
 	if(!(ss >> host_job.image_height)) { print_usage(); exit(1); }
 	if(!(ss >> host_job.pass_count)) { print_usage(); exit(1); }
+	if(!(ss >> DEPTH_MAX)) { print_usage(); exit(1); }
 
 	host_job = allocate_host_job(host_job);
 

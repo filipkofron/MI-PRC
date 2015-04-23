@@ -13,21 +13,26 @@
 #include <stack>
 #include <assert.h>
 
+int DEPTH_MAX = 1;
+
 float __constant__ const_mem[15 * 1024];
 
-__global__ void init_kernel(job_t job)
+__global__ void init_kernel(job_t job, rand_init_t init)
 {
 	int uniq_id = threadIdx.x + blockIdx.x * blockDim.x;
 
 	int kernel_x = uniq_id % job.image_width;
 	int kernel_y = uniq_id / job.image_width;
 
+	fast_random_t frand;
+	init_fast_random (frand, kernel_x, kernel_y, init);
+
 	float norm = (job.image_width > job.image_height ? job.image_width : job.image_height);
 	float inv_norm = 1.0f / norm;
 	init_vec3(&job.ray_pos[uniq_id * 3], (kernel_x - 0.5f * job.image_width) * inv_norm, (kernel_y - 0.5f * job.image_height) * inv_norm, -60.0f);
 
-	float off_x = job.ray_pos[uniq_id * 3] * 0.1f;
-	float off_y = job.ray_pos[uniq_id * 3 + 1] * 0.1f;
+	float off_x = job.ray_pos[uniq_id * 3] * 0.1f + rand_f(frand) * 0.02;
+	float off_y = job.ray_pos[uniq_id * 3 + 1] * 0.1f + rand_f(frand) * 0.02;
 
 	init_vec3(&job.ray_dir[uniq_id * 3], off_x, off_y, 1.0f);
 	normalize(&job.ray_dir[uniq_id * 3]);
@@ -70,14 +75,13 @@ __global__ void forward_kernel(job_t old_job, job_t new_job)
 	}
 }
 
-__global__ void rand_kernel(job_t old_job, job_t new_job, int rand_init)
+__global__ void rand_kernel(job_t old_job, job_t new_job, rand_init_t rand_init)
 {
 	int uniq_id = threadIdx.x + blockIdx.x * blockDim.x;
 	int dest_id = old_job.target_idx[uniq_id] - old_job.gather_arr[uniq_id];
 	int max_id = dest_id + old_job.gather_arr[uniq_id];
 	float rv[3];
 
-	//printf("uniq: %i, dest_id: %i, max_id: %i\n", uniq_id, dest_id, max_id);
 	fast_random_t frand;
 	init_fast_random (frand, uniq_id, dest_id, rand_init);
 
@@ -85,7 +89,6 @@ __global__ void rand_kernel(job_t old_job, job_t new_job, int rand_init)
 	for(int dest_idx = dest_id; dest_idx < max_id; dest_idx++)
 	{
 		init_vec3(rv, rand_f(frand), rand_f(frand), rand_f(frand));
-		//printf("rv0: %f, rv1: %f, rv2: %f\n", rv[0], rv[1], rv[2]);
 		add(&new_job.ray_dir[dest_idx * 3], rv);
 	}
 }
@@ -121,8 +124,6 @@ __global__ void pps_kernel(int *dest, int *src, int powerof2)
 		dest[uniq_id] = src[uniq_id - powerof2] + src[uniq_id];
 	else
 		dest[uniq_id] = src[uniq_id];
-
-		// TODO: Optimize!!!
 }
 
 static void do_pps(int *arr, int size)
@@ -159,7 +160,10 @@ static int ray_step(job_t dev_job, scene_t *scene, int depth)
 	{
 		// we have to set the first pos to be that of screen
 		std::cout << "[MainLoop] >> Running init_kernel to setup job seed." << std::endl;
-		init_kernel<<< BLOCKS_PER_JOB(size), THREADS_PER_BLOCK >>>(dev_job);
+		rand_init_t rand_init;
+		init_rand(rand_init);
+
+		init_kernel<<< BLOCKS_PER_JOB(size), THREADS_PER_BLOCK >>>(dev_job, rand_init);
 		cudaDeviceSynchronize();
 		cudaCheckErrors("init_kernel fail");
 	}
@@ -198,13 +202,11 @@ void main_loop(job_t host_job, scene_t *scene)
 			temp_job.image_width = THREADS_PER_BLOCK;
 			temp_job.image_height = next_size / THREADS_PER_BLOCK + (next_size % THREADS_PER_BLOCK ? 1 : 0);
 			temp_job = allocate_device_job(temp_job);
-			cudaDeviceSynchronize();
-			cudaCheckErrors("pre-forward_kernel sync fail");
 			int old_jobs_size = calc_jobs(curr_job.image_width * curr_job.image_height);
-			std::cout << "[MainLoop oldJob] size: " << old_jobs_size << std::endl;
 			std::cout << "[MainLoop newJob] size: " << calc_jobs(temp_job.image_width * temp_job.image_height) << std::endl;
 
-			int rand_init = rand();
+			rand_init_t rand_init;
+			init_rand(rand_init);
 
 			forward_kernel<<< BLOCKS_PER_JOB(old_jobs_size), THREADS_PER_BLOCK >>>(curr_job, temp_job);
 			cudaCheckErrors("forward_kernel fail");
@@ -212,9 +214,6 @@ void main_loop(job_t host_job, scene_t *scene)
 			cudaCheckErrors("forward_kernel sync fail");
 
 			rand_kernel<<< BLOCKS_PER_JOB(old_jobs_size), THREADS_PER_BLOCK >>>(curr_job, temp_job, rand_init);
-			cudaCheckErrors("rand_kernel fail");
-			cudaDeviceSynchronize();
-			cudaCheckErrors("rand_kernel sync fail");
 
 			curr_job = temp_job;
 			jobs.push(curr_job);

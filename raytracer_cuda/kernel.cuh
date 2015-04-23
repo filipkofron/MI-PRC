@@ -4,7 +4,7 @@
 #include "job.cuh"
 #include "scene.cuh"
 
-#define DEPTH_MAX 4
+extern int DEPTH_MAX;
 
 void main_loop(job_t host_job, scene_t *scene);
 
