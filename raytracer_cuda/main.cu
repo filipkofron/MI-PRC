@@ -4,6 +4,7 @@
 #include "kernel.cuh"
 #include "bmp.cuh"
 #include "common.cuh"
+#include "jpge.h"
 
 #include <cstdio>
 #include <iostream>
@@ -117,8 +118,7 @@ int main(int argc, char *argv[])
 
 	clean_scene();
 
-	FILE *file = fopen("test.bmp", "wb+");
-	srand((unsigned int) time(NULL));
+	/*FILE *file = fopen("test.bmp", "wb+");
 	if (file)
 	{
 		write_bmp(file, host_job.image_dest, host_job.image_width, host_job.image_height);
@@ -128,7 +128,29 @@ int main(int argc, char *argv[])
 	else
 	{
 		fprintf(stderr, "File could not be opened!\n");
+	}*/
+
+	uint8_t *img = new uint8_t[host_job.image_width * host_job.image_height * 3];
+	int max_size = host_job.image_width * host_job.image_height * 3;
+	for (uint32_t y = 0; y < host_job.image_height; y++)
+	{
+		for (uint32_t x = 0; x < host_job.image_width; x++)
+		{
+			float *elem = &host_job.image_dest[max_size - (y * host_job.image_width + x) * 3 - 1];
+			uint8_t *dest = &img[(y * host_job.image_width + (host_job.image_width - x - 1)) * 3];
+
+			dest[2] = (uint8_t)(elem[0] * 255.0);
+			dest[1] = (uint8_t)(elem[1] * 255.0);
+			dest[0] = (uint8_t)(elem[2] * 255.0);
+		}
 	}
+
+	if(!jpge::compress_image_to_jpeg_file("image.jpg", host_job.image_width, host_job.image_height, 3, img))
+	{
+		fprintf(stderr, "Could not save JPEG!\n");
+	}
+
+	delete [] img;
 
 	free_host_job(&host_job);
 
