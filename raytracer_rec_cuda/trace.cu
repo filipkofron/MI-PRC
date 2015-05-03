@@ -92,13 +92,13 @@ __device__ int find_intersect(float *pos, float *dir, float *new_pos, float *new
 
 // trace single ray
 __device__ void trace_ray(
-	int *gather_arr,
-	int *target_idx,
 	float *color,
 	float *pos,
 	float *dir,
 	uint32_t depth,
-	scene_t *scene)
+	uint32_t depth_max,
+	scene_t *scene,
+	fast_random_t *rand)
 {
 	float new_pos[3] = {0.0f, 0.0f, 0.0f};
 	float new_dir[3] = {0.0f, 0.0f, 0.0f};
@@ -117,19 +117,36 @@ __device__ void trace_ray(
 		normalize(normal);
 		float light_color[3] = {0.0f, 0.0f, 1.0f};
 		calc_light(new_pos, normal, light_color, scene, &colors);
+
+		if(depth < depth_max)
+		{
+			const int c = 4;
+			float res_color[3];
+			float rv[3];
+
+			for(int i = 0; i < c; i++)
+			{
+				set_vec3(pos, new_pos); // prep for reflection
+				set_vec3(dir, new_dir);
+				init_vec3(rv, rand_f(*rand), rand_f(*rand), rand_f(*rand));
+				add(dir, rv);
+				trace_ray(res_color,
+									pos,
+									dir,
+									depth + 1,
+									depth_max,
+									scene,
+									rand);
+
+				mul(res_color, 0.25f);
+				add(light_color, res_color);
+			}
+		}
+
 		set_vec3(color, light_color);
-
-		set_vec3(pos, new_pos); // prep for reflection
-		set_vec3(dir, new_dir);
-
-		int c = 4;
-		*target_idx = c;
-		*gather_arr = c;
 	}
 	else
 	{
 		set_vec3(color, none);
-		*gather_arr = 0;
-		*target_idx = 0;
 	}
 }

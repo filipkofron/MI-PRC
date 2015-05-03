@@ -10,11 +10,9 @@ typedef struct
   int image_height;
   int pass_count;
 
-  int *gather_arr;
   float *image_dest;
   float *ray_pos;
   float *ray_dir;
-  int *target_idx;
 } job_t;
 
 #define THREADS_PER_BLOCK 32
