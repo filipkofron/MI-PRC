@@ -76,7 +76,7 @@ int main(int argc, char *argv[])
 	cudaDeviceSynchronize();
 	cudaCheckErrors("Init fail.");
 
-	const clock_t whole_time_begin = clock();
+	Timer timerWhole;
 	if(argc != 5)
 	{
 		std::cerr << "Invalid number of arguments: " << (argc - 1) << " but 4 are required." << std::endl;
@@ -93,6 +93,7 @@ int main(int argc, char *argv[])
 	if(!(ss >> host_job.image_height)) { print_usage(); exit(1); }
 	if(!(ss >> host_job.pass_count)) { print_usage(); exit(1); }
 	if(!(ss >> DEPTH_MAX)) { print_usage(); exit(1); }
+	DEPTH_MAX--;
 
 	host_job = allocate_host_job(host_job);
 
@@ -109,12 +110,12 @@ int main(int argc, char *argv[])
 
 	std::cout << "[Prep] >> Done." << std::endl;
 
-	const clock_t cuda_time_begin = clock();
+	Timer timerCuda;
 
 	main_loop(host_job, &dev_scene);
 	cudaDeviceSynchronize();
 
-	float res_cuda = (float( clock () - cuda_time_begin ) / CLOCKS_PER_SEC) * 1000;
+	float res_cuda = timerCuda.elapsed();
 
 	clean_scene();
 
@@ -161,11 +162,11 @@ int main(int argc, char *argv[])
       return 1;
   }
 
-	float res_whole = (float( clock () - whole_time_begin ) / CLOCKS_PER_SEC) * 1000;
+	float res_whole = timerWhole.elapsed();
 
 	std::cout << std::endl;
-	std::cout << "[Post] >> Overall time in ms: " << res_whole << std::endl;
-	std::cout << "[Post] >> CUDA time in ms: " << res_cuda << std::endl;
+	std::cout << "[Post] >> Overall time in s: " << res_whole << std::endl;
+	std::cout << "[Post] >> CUDA time in s: " << res_cuda << std::endl;
 	std::cout << "[Post] >> All done." << std::endl;
 
 	return 0;

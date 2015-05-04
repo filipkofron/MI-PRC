@@ -1,17 +1,15 @@
-#include "scene.cuh"
-#include "sphere.cuh"
-#include "obj.cuh"
-#include "light.cuh"
-#include "triangle.cuh"
-#include "common.cuh"
-#include "kernel.cuh"
+#include "scene.h"
+#include "sphere.h"
+#include "obj.h"
+#include "light.h"
+#include "triangle.h"
+#include "common.h"
+#include "kernel.h"
 #include <vector>
 #include <fstream>
 #include <sstream>
 #include <cstring>
 #include <iostream>
-#include "cuda_runtime.h"
-#include "device_launch_parameters.h"
 
 // scene instance
 scene_t host_scene;
@@ -114,15 +112,18 @@ void load_triangles(std::ifstream &ifs)
 // initialize whole scene
 void init_scene(std::string name, int width, int height)
 {
-	std::ifstream objf(name + ".obj");
+	std::string temp = name + ".obj";
+	std::ifstream objf(temp.c_str());
 	load_triangles(objf);
 	objf.close();
 
-	std::ifstream spheres(name + ".sph");
+	temp = name + ".sph";
+	std::ifstream spheres(temp.c_str());
 	load_spheres(spheres);
 	spheres.close();
 
-	std::ifstream lights(name + ".lit");
+	temp = name + ".lit";
+	std::ifstream lights(temp.c_str());
 	load_lights(lights);
 	lights.close();
 
@@ -145,14 +146,8 @@ void init_scene(std::string name, int width, int height)
 	mem_pos += dev_scene.triangles_count * TRIANGLE_SIZE;
 	memcpy(dev_scene.triangles, host_scene.triangles, dev_scene.triangles_count * sizeof(float) * TRIANGLE_SIZE);
 
-
-	cudaMemcpyToSymbol (const_mem, mem,
-		(dev_scene.light_count * TRIANGLE_SIZE
-		+ dev_scene.spheres_count * SPHERE_SIZE
-		+ dev_scene.triangles_count * TRIANGLE_SIZE) * sizeof(float));
-
 	std::cout << ">> SCENE _end_" << std::endl;
-	delete [] mem;
+	const_mem = mem;
 }
 
 // cleanup the scene
@@ -161,4 +156,5 @@ void clean_scene()
 	delete[] host_scene.triangles;
 	delete[] host_scene.spheres;
 	delete[] host_scene.light;
+	delete const_mem;
 }

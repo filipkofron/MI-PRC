@@ -1,25 +1,24 @@
-#include "cuda_runtime.h"
-#include "device_launch_parameters.h"
-#include "common.cuh"
-#include "bmp.cuh"
-#include "scene.cuh"
-#include "trace.cuh"
-#include "job.cuh"
-#include "kernel.cuh"
-#include "rand.cuh"
+#include "common.h"
+#include "bmp.h"
+#include "scene.h"
+#include "trace.h"
+#include "job.h"
+#include "kernel.h"
+#include "rand.h"
 
 #include <cstdio>
 #include <iostream>
 #include <stack>
 #include <assert.h>
+#include <thread>
 
 int DEPTH_MAX = 1;
+#define MIN(a, b) ((a) < (b) ? (a) : (b))
+float *const_mem = NULL;
 
-float __constant__ const_mem[15 * 1024];
-
-__global__ void init_kernel(job_t job, rand_init_t init)
+void init_kernel(int threadIdx_x, int blockIdx_x, int blockDim_x, job_t job, rand_init_t init)
 {
-	int uniq_id = threadIdx.x + blockIdx.x * blockDim.x;
+	int uniq_id = threadIdx_x + blockIdx_x * blockDim_x;
 
 	int kernel_x = uniq_id % job.image_width;
 	int kernel_y = uniq_id / job.image_width;
@@ -41,9 +40,9 @@ __global__ void init_kernel(job_t job, rand_init_t init)
 	init_vec3(color_offset, 0.0f, 0.0f, 0.0f);
 }
 
-__global__ void ray_kernel(job_t job, scene_t scene, rand_init_t init, uint32_t depth_max)
+void ray_kernel(int threadIdx_x, int blockIdx_x, int blockDim_x, job_t job, scene_t scene, rand_init_t init, uint32_t depth_max)
 {
-	int uniq_id = threadIdx.x + blockIdx.x * blockDim.x;
+	int uniq_id = threadIdx_x + blockIdx_x * blockDim_x;
 
 	// All threads do work but some of the results will be discarded as they are only the padding in the arrays.
 	int kernel_x = uniq_id % job.image_width;
@@ -63,6 +62,20 @@ __global__ void ray_kernel(job_t job, scene_t scene, rand_init_t init, uint32_t 
 		clamp(&job.image_dest[uniq_id * 3]);
 }
 
+void init_kernel_th(int th_max, int blockIdx_x, int blockDim_x, job_t job, rand_init_t init)
+{
+	for(int th = 0; th < th_max; th++)
+		for(int th_x = 0; th_x < blockDim_x; th_x++)
+			init_kernel(th_x, blockIdx_x + th, blockDim_x, job, init);
+}
+
+void ray_kernel_th(int th_max, int blockIdx_x, int blockDim_x, job_t job, scene_t scene, rand_init_t init, uint32_t depth_max)
+{
+	for(int th = 0; th < th_max; th++)
+		for(int th_x = 0; th_x < blockDim_x; th_x++)
+			ray_kernel(th_x, blockIdx_x + th, blockDim_x, job, scene, init, depth_max);
+}
+
 void main_loop(job_t host_job, scene_t *scene)
 {
 	std::cout << "[MainLoop] >> Begin with image size: " << host_job.image_width << "x" << host_job.image_height << " for " << host_job.pass_count << " passes" << std::endl;
@@ -74,10 +87,30 @@ void main_loop(job_t host_job, scene_t *scene)
 	rand_init_t rand_init;
 	init_rand(rand_init);
 
-	init_kernel<<< BLOCKS_PER_JOB(size), THREADS_PER_BLOCK >>>(dev_job, rand_init);
-	ray_kernel<<< BLOCKS_PER_JOB(size), THREADS_PER_BLOCK >>>(dev_job, *scene, rand_init, DEPTH_MAX);
-	cudaDeviceSynchronize();
-	cudaCheckErrors("ray_kernel fail");
+	assert((BLOCKS_PER_JOB(size) % 16) == 0);
+	std::cout << "BLOCKS_PER_JOB(size): " << BLOCKS_PER_JOB(size) << std::endl;
+
+	int th_n = MIN(BLOCKS_PER_JOB(size), 16);
+	int loop_th = th_n < 16 ? 1 : (BLOCKS_PER_JOB(size) / 16);
+
+	std::cout << "th_n: " << th_n << std::endl;
+	std::cout << "loop_th: " << loop_th << std::endl;
+
+	std::thread *threads = new std::thread[th_n];
+
+	for(int blk_id = 0; blk_id < th_n; blk_id++)
+		threads[blk_id] = std::thread(init_kernel_th, loop_th, blk_id * loop_th, THREADS_PER_BLOCK, dev_job, rand_init);
+
+	for(int blk_id = 0; blk_id < th_n; blk_id++)
+		threads[blk_id].join();
+
+	for(int blk_id = 0; blk_id < th_n; blk_id++)
+		threads[blk_id] = std::thread(ray_kernel_th, loop_th, blk_id * loop_th, THREADS_PER_BLOCK, dev_job, *scene, rand_init, DEPTH_MAX);
+
+	for(int blk_id = 0; blk_id < th_n; blk_id++)
+		threads[blk_id].join();
+
+	delete [] threads;
 
 	copy_job_to_host(&host_job, &dev_job);
 

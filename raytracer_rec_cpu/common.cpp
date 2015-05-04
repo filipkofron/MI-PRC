@@ -1,41 +1,20 @@
-#include "common.cuh"
-#include "cuda_runtime.h"
-#include "cuda.h"
-#include "device_launch_parameters.h"
+#include "common.h"
 
 #include <iostream>
 
 void cudaSafeMalloc(void **ptr, size_t size)
 {
-  size_t total_m;
-  size_t free_m;
-  cuMemGetInfo(&free_m, &total_m);
-  cudaCheckErrors("cuMemGetInfo fail");
-  /*std::cout << "Memory: " << (free_m / (1024 * 1024)) << "/" << (total_m / (1024 * 1024)) << " MiB" << std::endl;
-  std::cout << "Allocating " << size << " B on device!" << std::endl;*/
-  if (cudaMalloc(ptr, size) != cudaSuccess)
-	{
-		std::cerr << "Cannot allocate memory of size " << (size / 1024) << " kiB on device!" << std::endl;
-		exit(1);
-	}
-  cudaCheckErrors("Malloc fail");
+  *ptr = malloc(size);
 }
 
 void safeMalloc(void **ptr, size_t size)
 {
   *ptr = malloc(size);
-  /*std::cout << "Allocating " << size << " B on host!" << std::endl;*/
-  if (*ptr == NULL)
-  {
-    std::cerr << "Cannot allocate memory of size " << (size / 1024) << " kiB on host!" << std::endl;
-    exit(1);
-  }
 }
 
 void cudaSafeFree(void *ptr)
 {
-  cudaFree(ptr);
-  cudaCheckErrors("Free fail");
+  free(ptr);
 }
 
 void safeFree(void *ptr)

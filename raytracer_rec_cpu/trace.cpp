@@ -1,13 +1,13 @@
 #include <stdint.h>
 #include <iostream>
-#include "trace.cuh"
-#include "sphere.cuh"
-#include "triangle.cuh"
-#include "light.cuh"
-#include "kernel.cuh"
+#include "trace.h"
+#include "sphere.h"
+#include "triangle.h"
+#include "light.h"
+#include "kernel.h"
 
 	// checks whole scene for intersect
-__device__ int find_intersect(float *pos, float *dir, float *new_pos, float *new_dir, float *normal, color_t *colors, scene_t *scene)
+int find_intersect(float *pos, float *dir, float *new_pos, float *new_dir, float *normal, color_t *colors, scene_t *scene)
 {
 		float dist_tr = FLT_MAX;
 		float dist_sp = FLT_MAX;
@@ -91,7 +91,7 @@ __device__ int find_intersect(float *pos, float *dir, float *new_pos, float *new
 	}
 
 // trace single ray
-__device__ void trace_ray(
+void trace_ray(
 	float *color,
 	float *pos,
 	float *dir,

@@ -2,8 +2,9 @@
 #include <sstream>
 #include <iostream>
 #include <string.h>
-#include "obj.cuh"
-#include "triangle.cuh"
+#include <map>
+#include "obj.h"
+#include "triangle.h"
 
 Obj::Obj(std::ifstream &ifs)
 {
@@ -36,7 +37,7 @@ void Obj::loadObj(std::ifstream &ifs)
 		{
 			std::string filename;
 			ss >> filename;
-			std::ifstream mtlifs(filename);
+			std::ifstream mtlifs(filename.c_str());
 			loadMtl(mtlifs);
 			mtlifs.close();
 		}

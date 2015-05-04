@@ -2,7 +2,7 @@
 #define TRIANGLE_HPP
 
 #include <float.h>
-#include "vec3.cuh"
+#include "vec3.h"
 
 /*
 0 - 2: pos a
@@ -27,7 +27,7 @@
 #define TRIANGLE_INDEX(idx,triangles) (&triangles[TRIANGLE_SIZE * idx])
 
 
-__device__ inline float triangle_intersect(float *pos, float *dir, float *triangle, float *res_uv)
+inline float triangle_intersect(float *pos, float *dir, float *triangle, float *res_uv)
 {
 	float e1[3], e2[3], h[3], s[3], q[3];
 	float a, f, u, v;
@@ -65,7 +65,7 @@ __device__ inline float triangle_intersect(float *pos, float *dir, float *triang
 	return dist > 0.00001f ? dist : FLT_MAX;
 }
 
-__device__ inline void triangle_pos(float *new_pos, float *uv, float *triangle)
+inline void triangle_pos(float *new_pos, float *uv, float *triangle)
 {
 	float d = 1 - uv[0] - uv[1];
 	float temp[3];
@@ -77,7 +77,7 @@ __device__ inline void triangle_pos(float *new_pos, float *uv, float *triangle)
 	add(new_pos, temp);
 }
 
-__device__ inline void triangle_normal(float *normal, float *triangle)
+inline void triangle_normal(float *normal, float *triangle)
 {
 	float e1[3];
 	float e2[3];

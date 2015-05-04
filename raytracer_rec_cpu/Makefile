@@ -1,16 +1,15 @@
-CUDA_FILES := $(wildcard *.cu)
 CPP_FILES := $(wildcard *.cpp)
-OBJ_FILES := $(addprefix ,$(notdir $(CUDA_FILES:.cu=.o))) $(addprefix ,$(notdir $(CPP_FILES:.cpp=.o)))
-REQ_FILES := $(wildcard *.cuh *.h)
-CUDA_FLAGS := -maxrregcount 24 -Xptxas -v -gencode=arch=compute_20,code=compute_20 --relocatable-device-code true -O3
-LD_FLAGS := -std=c++11 -lcudadevrt -lcuda $(CUDA_FLAGS)
+OBJ_FILES := $(addprefix ,$(notdir $(CPP_FILES:.cpp=.o)))
+REQ_FILES := $(wildcard *.h)
+CUDA_FLAGS := -O3
+LD_FLAGS := -std=c++11 $(CUDA_FLAGS)
 CC_FLAGS := -std=c++11 $(CUDA_FLAGS)
 
 raytracer.run: $(OBJ_FILES)
-	nvcc $(LD_FLAGS) -o $@ $^
+	clang++ $(LD_FLAGS) -o $@ $^ -pthread -std=c++11
 
-%.o: %.cu $(REQ_FILES)
-	nvcc $(CC_FLAGS) -c -o $@ $<
+%.o: %.cpp $(REQ_FILES)
+	clang++ $(CC_FLAGS) -c -o $@ $< -std=c++11
 
 clean:
 	rm -f *.o

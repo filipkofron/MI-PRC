@@ -2,7 +2,7 @@
 #define CIRCLE_H
 
 #include <cfloat>
-#include "vec3.cuh"
+#include "vec3.h"
 
 /*
 0 - 2: pos
@@ -24,7 +24,7 @@
 #define SPHERE_INDEX(idx,spheres) (&spheres[SPHERE_SIZE * idx])
 
 /* calculate possible intersect */
-__device__ inline float sphere_intersect(float *pos, float *dir, float *center, float r)
+inline float sphere_intersect(float *pos, float *dir, float *center, float r)
 {
 	float ray_pos_x = pos[0] - center[0];
 	float ray_pos_y = pos[1] - center[1];
@@ -52,7 +52,7 @@ __device__ inline float sphere_intersect(float *pos, float *dir, float *center, 
 }
 
 /* retrieve position of the intersect */
-__device__ inline void sphere_intersect_pos(float *new_pos, float *old_pos, float *old_dir, float dist)
+inline void sphere_intersect_pos(float *new_pos, float *old_pos, float *old_dir, float dist)
 {
 	new_pos[0] = old_pos[0] + old_dir[0] * dist;
 	new_pos[1] = old_pos[1] + old_dir[1] * dist;
@@ -60,7 +60,7 @@ __device__ inline void sphere_intersect_pos(float *new_pos, float *old_pos, floa
 }
 
 /* calculare sphere normal at given position on the sphere */
-__device__ inline void sphere_normal(float *normal, float *pos, float *sphere)
+inline void sphere_normal(float *normal, float *pos, float *sphere)
 {
 	normal[0] = pos[0] - sphere[0];
 	normal[1] = pos[1] - sphere[1];
