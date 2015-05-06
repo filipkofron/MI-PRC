@@ -19,7 +19,7 @@ typedef struct
 	uint32_t a, b, c, d;
 } rand_init_t;
 
-__device__ void init_fast_random(fast_random_t &fr, int uniq_id, int dest_id, rand_init_t init)
+void init_fast_random(fast_random_t &fr, int uniq_id, int dest_id, rand_init_t init)
 {
 	int init2 = init.a * 17;
 	int init3 = init.b * 59;
@@ -30,7 +30,7 @@ __device__ void init_fast_random(fast_random_t &fr, int uniq_id, int dest_id, ra
 	fr.w = uniq_id * init4 + dest_id * init.d;
 }
 
-__device__ uint32_t rand_full(fast_random_t &fr)
+uint32_t rand_full(fast_random_t &fr)
 {
 	uint32_t t = fr.x ^ (fr.x << 11);
 	fr.x = fr.y;
@@ -39,13 +39,13 @@ __device__ uint32_t rand_full(fast_random_t &fr)
 	return fr.w = fr.w ^ (fr.w >> 19) ^ t ^ (t >> 8);
 }
 
-__device__ float rand_f(fast_random_t &fr)
+float rand_f(fast_random_t &fr)
 {
 	uint32_t r = rand_full(fr);
 	return 100.0f / ((r & 0xFFFF) + 1);
 }
 
-__device__ uint32_t rand256(fast_random_t &fr)
+uint32_t rand256(fast_random_t &fr)
 {
 	uint32_t t = fr.x ^ (fr.x << 11);
 	fr.x = fr.y;

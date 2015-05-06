@@ -1,9 +1,6 @@
-#include "cuda_runtime.h"
-#include "cuda.h"
-#include "device_launch_parameters.h"
-#include "kernel.cuh"
-#include "bmp.cuh"
-#include "common.cuh"
+#include "kernel.h"
+#include "bmp.h"
+#include "common.h"
 #include "jpge.h"
 
 #include <cstdio>
@@ -20,63 +17,11 @@ void print_usage()
 	std::cout << std::endl;
 }
 
-static void HandleError(cudaError_t err, const char *file, int line)
-{
-	if (err != cudaSuccess)
-	{
-		printf("%s in %s at line %d\n", cudaGetErrorString(err), file, line);
-		exit(EXIT_FAILURE);
-	}
-}
-
-#define HANDLE_ERROR( err ) (HandleError( err, __FILE__, __LINE__ ))
-
-void init_cuda()
-{
-	cuInit(0);
-	cudaCheckErrors("cuInit fail");
-	int num_devices, device;
-	cudaGetDeviceCount(&num_devices);
-	if (num_devices > 1)
-	{
-		int max_multiprocessors = 0, max_device = 0;
-		for (device = 0; device < num_devices; device++) {
-			cudaDeviceProp properties;
-			cudaGetDeviceProperties(&properties, device);
-			cudaCheckErrors("cudaGetDeviceProperties fail");
-			if (max_multiprocessors < properties.multiProcessorCount)
-			{
-	      max_multiprocessors = properties.multiProcessorCount;
-	      max_device = device;
-			}
-		}
-		cudaSetDevice(max_device);
-		cudaCheckErrors("cudaSetDevice fail");
-
-		CUdevice dev;
-		cuDeviceGet(&dev, max_device);
-		cudaCheckErrors("cuDeviceGet fail.");
-
-		CUcontext ctx;
-		cuCtxCreate(&ctx, 0, dev);
-		cudaCheckErrors("cuCtxCreate fail.");
-	}
-	else
-	{
-		std::cerr << "No CUDA device abailable :(." << std::endl;
-		exit(1);
-	}
-}
-
 int main(int argc, char *argv[])
 {
 	srand(time(NULL));
 
-	init_cuda();
-	cudaDeviceSynchronize();
-	cudaCheckErrors("Init fail.");
-
-	const clock_t whole_time_begin = clock();
+	Timer timerWhole;
 	if(argc != 5)
 	{
 		std::cerr << "Invalid number of arguments: " << (argc - 1) << " but 4 are required." << std::endl;
@@ -96,25 +41,15 @@ int main(int argc, char *argv[])
 
 	host_job = allocate_host_job(host_job);
 
-	cudaCheckErrors("Some fail.");
-
-	cudaDeviceSynchronize();
-
-	cudaCheckErrors("Some fail #2.");
-
 	init_scene("sample/sample", host_job.image_width, host_job.image_height);
-	cudaDeviceSynchronize();
-
-	cudaCheckErrors("Scene fail.");
 
 	std::cout << "[Prep] >> Done." << std::endl;
 
-	const clock_t cuda_time_begin = clock();
+	Timer timerCuda;
 
 	main_loop(host_job, &dev_scene);
-	cudaDeviceSynchronize();
 
-	float res_cuda = (float( clock () - cuda_time_begin ) / CLOCKS_PER_SEC) * 1000;
+	double res_cuda = timerCuda.elapsed();
 
 	clean_scene();
 
@@ -154,18 +89,11 @@ int main(int argc, char *argv[])
 
 	free_host_job(&host_job);
 
-	cudaError_t cudaStatus = cudaDeviceReset();
-  if (cudaStatus != cudaSuccess)
-	{
-      fprintf(stderr, "cudaDeviceReset failed!");
-      return 1;
-  }
-
-	float res_whole = (float( clock () - whole_time_begin ) / CLOCKS_PER_SEC) * 1000;
+	double res_whole = timerWhole.elapsed();
 
 	std::cout << std::endl;
-	std::cout << "[Post] >> Overall time in ms: " << res_whole << std::endl;
-	std::cout << "[Post] >> CUDA time in ms: " << res_cuda << std::endl;
+	std::cout << "[Post] >> Overall time in s: " << res_whole << std::endl;
+	std::cout << "[Post] >> CUDA time in s: " << res_cuda << std::endl;
 	std::cout << "[Post] >> All done." << std::endl;
 
 	return 0;

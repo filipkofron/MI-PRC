@@ -1,13 +1,13 @@
 #ifndef KERNEL_CUH
 #define KERNEL_CUH
 
-#include "job.cuh"
-#include "scene.cuh"
+#include "job.h"
+#include "scene.h"
 
 extern int DEPTH_MAX;
 
 void main_loop(job_t host_job, scene_t *scene);
 
-extern float __constant__ const_mem[15 * 1024];
+extern float const_mem[15 * 1024];
 
 #endif

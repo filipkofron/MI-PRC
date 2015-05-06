@@ -1,17 +1,9 @@
 #ifndef COMMON_CUH
 #define COMMON_CUH
 
-#define cudaCheckErrors(msg) \
-    do { \
-        cudaError_t __err = cudaGetLastError(); \
-        if (__err != cudaSuccess) { \
-            fprintf(stderr, "Fatal error: %s (%s at %s:%d)\n", \
-                msg, cudaGetErrorString(__err), \
-                __FILE__, __LINE__); \
-            fprintf(stderr, "*** FAILED - ABORTING\n"); \
-            exit(1); \
-        } \
-    } while (0)
+#include <cstdio>
+#include <cstdlib>
+#include <chrono>
 
 void cudaSafeMalloc(void **ptr, size_t size);
 void safeMalloc(void **ptr, size_t size);
@@ -34,6 +26,5 @@ private:
     typedef std::chrono::duration<double, std::ratio<1> > second_;
     std::chrono::time_point<clock_> beg_;
 };
-
 
 #endif

@@ -1,17 +1,15 @@
-#include "scene.cuh"
-#include "sphere.cuh"
-#include "obj.cuh"
-#include "light.cuh"
-#include "triangle.cuh"
-#include "common.cuh"
-#include "kernel.cuh"
+#include "scene.h"
+#include "sphere.h"
+#include "obj.h"
+#include "light.h"
+#include "triangle.h"
+#include "common.h"
+#include "kernel.h"
 #include <vector>
 #include <fstream>
 #include <sstream>
 #include <cstring>
 #include <iostream>
-#include "cuda_runtime.h"
-#include "device_launch_parameters.h"
 
 // scene instance
 scene_t host_scene;
@@ -146,7 +144,7 @@ void init_scene(std::string name, int width, int height)
 	memcpy(dev_scene.triangles, host_scene.triangles, dev_scene.triangles_count * sizeof(float) * TRIANGLE_SIZE);
 
 
-	cudaMemcpyToSymbol (const_mem, mem,
+	memcpy (const_mem, mem,
 		(dev_scene.light_count * TRIANGLE_SIZE
 		+ dev_scene.spheres_count * SPHERE_SIZE
 		+ dev_scene.triangles_count * TRIANGLE_SIZE) * sizeof(float));

@@ -2,8 +2,8 @@
 #include <sstream>
 #include <iostream>
 #include <string.h>
-#include "obj.cuh"
-#include "triangle.cuh"
+#include "obj.h"
+#include "triangle.h"
 
 Obj::Obj(std::ifstream &ifs)
 {

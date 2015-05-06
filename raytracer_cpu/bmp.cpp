@@ -1,4 +1,4 @@
-#include "bmp.cuh"
+#include "bmp.h"
 
 /* initialize properties of given Bitmap header with provided size*/
 void init_bmp_header(bmp_header_t *header, uint32_t width, uint32_t height)

@@ -3,7 +3,7 @@
 
 #include <vector>
 #include <map>
-#include "vec3.cuh"
+#include "vec3.h"
 
 /* *.obj format structured class for loading and processing it */
 class Obj

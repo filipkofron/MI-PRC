@@ -1,25 +1,25 @@
-#include "cuda_runtime.h"
-#include "device_launch_parameters.h"
-#include "common.cuh"
-#include "bmp.cuh"
-#include "scene.cuh"
-#include "trace.cuh"
-#include "job.cuh"
-#include "kernel.cuh"
-#include "rand.cuh"
+#include "common.h"
+#include "bmp.h"
+#include "scene.h"
+#include "trace.h"
+#include "job.h"
+#include "kernel.h"
+#include "rand.h"
 
 #include <cstdio>
 #include <iostream>
 #include <stack>
 #include <assert.h>
+#include <thread>
+#include <cstring>
 
 int DEPTH_MAX = 1;
+#define MIN(a, b) ((a) < (b) ? (a) : (b))
+float const_mem[15 * 1024];
 
-float __constant__ const_mem[15 * 1024];
-
-__global__ void init_kernel(job_t job, rand_init_t init)
+void init_kernel(int threadIdx_x, int blockIdx_x, int blockDim_x, job_t job, rand_init_t init)
 {
-	int uniq_id = threadIdx.x + blockIdx.x * blockDim.x;
+	int uniq_id = threadIdx_x + blockIdx_x * blockDim_x;
 
 	int kernel_x = uniq_id % job.image_width;
 	int kernel_y = uniq_id / job.image_width;
@@ -41,9 +41,16 @@ __global__ void init_kernel(job_t job, rand_init_t init)
 	init_vec3(color_offset, 0.0f, 0.0f, 0.0f);
 }
 
-__global__ void ray_kernel(job_t job, int depth, scene_t scene)
+void init_kernel_th(int th_max, int blockIdx_x, int blockDim_x, job_t job, rand_init_t init)
 {
-	int uniq_id = threadIdx.x + blockIdx.x * blockDim.x;
+	for(int th = 0; th < th_max; th++)
+		for(int th_x = 0; th_x < blockDim_x; th_x++)
+			init_kernel(th_x, blockIdx_x + th, blockDim_x, job, init);
+}
+
+void ray_kernel(int threadIdx_x, int blockIdx_x, int blockDim_x, job_t job, int depth, scene_t scene)
+{
+	int uniq_id = threadIdx_x + blockIdx_x * blockDim_x;
 
 	// All threads do work but some of the results will be discarded as they are only the padding in the arrays.
 
@@ -58,9 +65,16 @@ __global__ void ray_kernel(job_t job, int depth, scene_t scene)
 		clamp(&job.image_dest[uniq_id * 3]);
 }
 
-__global__ void forward_kernel(job_t old_job, job_t new_job)
+void ray_kernel_th(int th_max, int blockIdx_x, int blockDim_x, job_t job, int depth, scene_t scene)
 {
-	int uniq_id = threadIdx.x + blockIdx.x * blockDim.x;
+	for(int th = 0; th < th_max; th++)
+		for(int th_x = 0; th_x < blockDim_x; th_x++)
+			ray_kernel(th_x, blockIdx_x + th, blockDim_x, job, depth, scene);
+}
+
+void forward_kernel(int threadIdx_x, int blockIdx_x, int blockDim_x, job_t old_job, job_t new_job)
+{
+	int uniq_id = threadIdx_x + blockIdx_x * blockDim_x;
 	int dest_id = old_job.target_idx[uniq_id] - old_job.gather_arr[uniq_id];
 	int max_id = dest_id + old_job.gather_arr[uniq_id];
 
@@ -75,9 +89,16 @@ __global__ void forward_kernel(job_t old_job, job_t new_job)
 	}
 }
 
-__global__ void rand_kernel(job_t old_job, job_t new_job, rand_init_t rand_init)
+void forward_kernel_th(int th_max, int blockIdx_x, int blockDim_x, job_t old_job, job_t new_job)
 {
-	int uniq_id = threadIdx.x + blockIdx.x * blockDim.x;
+	for(int th = 0; th < th_max; th++)
+		for(int th_x = 0; th_x < blockDim_x; th_x++)
+			forward_kernel(th_x, blockIdx_x + th, blockDim_x, old_job, new_job);
+}
+
+void rand_kernel(int threadIdx_x, int blockIdx_x, int blockDim_x, job_t old_job, job_t new_job, rand_init_t rand_init)
+{
+	int uniq_id = threadIdx_x + blockIdx_x * blockDim_x;
 	int dest_id = old_job.target_idx[uniq_id] - old_job.gather_arr[uniq_id];
 	int max_id = dest_id + old_job.gather_arr[uniq_id];
 	float rv[3];
@@ -93,9 +114,16 @@ __global__ void rand_kernel(job_t old_job, job_t new_job, rand_init_t rand_init)
 	}
 }
 
-__global__ void backward_kernel(job_t target, job_t prev)
+void rand_kernel_th(int th_max, int blockIdx_x, int blockDim_x, job_t old_job, job_t new_job, rand_init_t rand_init)
 {
-	int uniq_id = threadIdx.x + blockIdx.x * blockDim.x;
+	for(int th = 0; th < th_max; th++)
+		for(int th_x = 0; th_x < blockDim_x; th_x++)
+		rand_kernel(th_x, blockIdx_x + th, blockDim_x, old_job, new_job, rand_init);
+}
+
+void backward_kernel(int threadIdx_x, int blockIdx_x, int blockDim_x, job_t target, job_t prev)
+{
+	int uniq_id = threadIdx_x + blockIdx_x * blockDim_x;
 	int gath = target.gather_arr[uniq_id];
 	int dest_id = target.target_idx[uniq_id] - gath;
 	int max_id = dest_id + gath;
@@ -116,14 +144,28 @@ __global__ void backward_kernel(job_t target, job_t prev)
 	set_vec3(res_addr, temp_res);
 }
 
-__global__ void pps_kernel(int *dest, int *src, int powerof2)
+void backward_kernel_th(int th_max, int blockIdx_x, int blockDim_x, job_t target, job_t prev)
 {
-	int uniq_id = threadIdx.x + blockIdx.x * blockDim.x;
+	for(int th = 0; th < th_max; th++)
+		for(int th_x = 0; th_x < blockDim_x; th_x++)
+		backward_kernel(th_x, blockIdx_x + th, blockDim_x, target, prev);
+}
+
+void pps_kernel(int threadIdx_x, int blockIdx_x, int blockDim_x, int *dest, int *src, int powerof2)
+{
+	int uniq_id = threadIdx_x + blockIdx_x * blockDim_x;
 
 	if(uniq_id >= powerof2)
 		dest[uniq_id] = src[uniq_id - powerof2] + src[uniq_id];
 	else
 		dest[uniq_id] = src[uniq_id];
+}
+
+void pps_kernel_th(int th_max, int blockIdx_x, int blockDim_x, int *dest, int *src, int powerof2)
+{
+	for(int th = 0; th < th_max; th++)
+		for(int th_x = 0; th_x < blockDim_x; th_x++)
+		pps_kernel(th_x, blockIdx_x + th, blockDim_x, dest, src, powerof2);
 }
 
 static void do_pps(int *arr, int size)
@@ -133,19 +175,32 @@ static void do_pps(int *arr, int size)
 	int *temp = NULL;
 	cudaSafeMalloc((void **) &temp, sizeof(int) * size);
 	int *orig_temp = temp;
+
+	assert((BLOCKS_PER_JOB(size) % 16) == 0);
+	std::cout << "BLOCKS_PER_JOB(size): " << BLOCKS_PER_JOB(size) << std::endl;
+
+	int th_n = MIN(BLOCKS_PER_JOB(size), 16);
+	int loop_th = th_n < 16 ? 1 : (BLOCKS_PER_JOB(size) / 16);
+
 	for(int d = 0; d <= d_max; d++)
 	{
-		pps_kernel<<< BLOCKS_PER_JOB(size), THREADS_PER_BLOCK >>>(temp, arr, pow2(d));
-		cudaDeviceSynchronize();
-		cudaCheckErrors("pps_kernel fail");
+		std::thread *threads = new std::thread[th_n];
+
+		for(int blk_id = 0; blk_id < th_n; blk_id++)
+			threads[blk_id] = std::thread(pps_kernel_th, loop_th, blk_id * loop_th, THREADS_PER_BLOCK, temp, arr, pow2(d));
+
+		for(int blk_id = 0; blk_id < th_n; blk_id++)
+			threads[blk_id].join();
+
+		delete [] threads;
+
 		int *swap = temp;
 		temp = arr;
 		arr = swap;
 	}
 	if((~d_max) & 1)
 	{
-		cudaMemcpy(arr, temp, size * sizeof(int), cudaMemcpyDeviceToDevice);
-		cudaCheckErrors("MemCPY PPS fail");
+		memcpy(arr, temp, size * sizeof(int));
 	}
 
 	cudaSafeFree(orig_temp);
@@ -156,6 +211,12 @@ static int ray_step(job_t dev_job, scene_t *scene, int depth)
 	int size = calc_jobs(dev_job.image_width * dev_job.image_height);
 	assert(size > 0);
 
+	assert((BLOCKS_PER_JOB(size) % 16) == 0);
+	std::cout << "BLOCKS_PER_JOB(size): " << BLOCKS_PER_JOB(size) << std::endl;
+
+	int th_n = MIN(BLOCKS_PER_JOB(size), 16);
+	int loop_th = th_n < 16 ? 1 : (BLOCKS_PER_JOB(size) / 16);
+
 	if(depth == 0)
 	{
 		// we have to set the first pos to be that of screen
@@ -163,19 +224,32 @@ static int ray_step(job_t dev_job, scene_t *scene, int depth)
 		rand_init_t rand_init;
 		init_rand(rand_init);
 
-		init_kernel<<< BLOCKS_PER_JOB(size), THREADS_PER_BLOCK >>>(dev_job, rand_init);
-		cudaDeviceSynchronize();
-		cudaCheckErrors("init_kernel fail");
+		std::thread *threads = new std::thread[th_n];
+
+		for(int blk_id = 0; blk_id < th_n; blk_id++)
+			threads[blk_id] = std::thread(init_kernel_th, loop_th, blk_id * loop_th, THREADS_PER_BLOCK, dev_job, rand_init);
+
+		for(int blk_id = 0; blk_id < th_n; blk_id++)
+			threads[blk_id].join();
+
+		delete [] threads;
 	}
 
 	std::cout << "[MainLoop] >> Ray tracing kernel .. " << std::endl;
-	ray_kernel<<< BLOCKS_PER_JOB(size), THREADS_PER_BLOCK >>>(dev_job, depth, *scene);
-	cudaDeviceSynchronize();
-	cudaCheckErrors("ray_kernel fail");
+	std::thread *threads = new std::thread[th_n];
+
+	for(int blk_id = 0; blk_id < th_n; blk_id++)
+		threads[blk_id] = std::thread(ray_kernel_th, loop_th, blk_id * loop_th, THREADS_PER_BLOCK, dev_job, depth, *scene);
+
+	for(int blk_id = 0; blk_id < th_n; blk_id++)
+		threads[blk_id].join();
+
+	delete [] threads;
+
 	int next_size = 0;
 	do_pps(dev_job.target_idx, size);
-	cudaMemcpy(&next_size, &dev_job.target_idx[size - 1], sizeof(int), cudaMemcpyDeviceToHost);
-	cudaCheckErrors("MemCPY the PPS max fail");
+	memcpy(&next_size, &dev_job.target_idx[size - 1], sizeof(int));
+
 	return next_size;
 }
 
@@ -208,12 +282,27 @@ void main_loop(job_t host_job, scene_t *scene)
 			rand_init_t rand_init;
 			init_rand(rand_init);
 
-			forward_kernel<<< BLOCKS_PER_JOB(old_jobs_size), THREADS_PER_BLOCK >>>(curr_job, temp_job);
-			cudaCheckErrors("forward_kernel fail");
-			cudaDeviceSynchronize();
-			cudaCheckErrors("forward_kernel sync fail");
+			assert((BLOCKS_PER_JOB(old_jobs_size) % 16) == 0);
+			std::cout << "BLOCKS_PER_JOB(size): " << BLOCKS_PER_JOB(old_jobs_size) << std::endl;
 
-			rand_kernel<<< BLOCKS_PER_JOB(old_jobs_size), THREADS_PER_BLOCK >>>(curr_job, temp_job, rand_init);
+			int th_n = MIN(BLOCKS_PER_JOB(old_jobs_size), 16);
+			int loop_th = th_n < 16 ? 1 : (BLOCKS_PER_JOB(old_jobs_size) / 16);
+
+			std::thread *threads = new std::thread[th_n];
+
+			for(int blk_id = 0; blk_id < th_n; blk_id++)
+				threads[blk_id] = std::thread(forward_kernel_th, loop_th, blk_id * loop_th, THREADS_PER_BLOCK, curr_job, temp_job);
+
+			for(int blk_id = 0; blk_id < th_n; blk_id++)
+				threads[blk_id].join();
+
+			for(int blk_id = 0; blk_id < th_n; blk_id++)
+				threads[blk_id] = std::thread(rand_kernel_th, loop_th, blk_id * loop_th, THREADS_PER_BLOCK, curr_job, temp_job, rand_init);
+
+			for(int blk_id = 0; blk_id < th_n; blk_id++)
+				threads[blk_id].join();
+
+			delete [] threads;
 
 			curr_job = temp_job;
 			jobs.push(curr_job);
@@ -238,7 +327,22 @@ void main_loop(job_t host_job, scene_t *scene)
 		{
 			int size = calc_jobs(old_job.image_width * old_job.image_height);
 			std::cout << "backward: " << back_i << std::endl;
-			backward_kernel<<< BLOCKS_PER_JOB(size), THREADS_PER_BLOCK >>>(old_job, back_job);
+
+			assert((BLOCKS_PER_JOB(size) % 16) == 0);
+			std::cout << "BLOCKS_PER_JOB(size): " << BLOCKS_PER_JOB(size) << std::endl;
+
+			int th_n = MIN(BLOCKS_PER_JOB(size), 16);
+			int loop_th = th_n < 16 ? 1 : (BLOCKS_PER_JOB(size) / 16);
+
+			std::thread *threads = new std::thread[th_n];
+
+			for(int blk_id = 0; blk_id < th_n; blk_id++)
+				threads[blk_id] = std::thread(backward_kernel_th, loop_th, blk_id * loop_th, THREADS_PER_BLOCK, old_job, back_job);
+
+			for(int blk_id = 0; blk_id < th_n; blk_id++)
+				threads[blk_id].join();
+
+			delete [] threads;
 		}
 
 		if(jobs.size() == 0)

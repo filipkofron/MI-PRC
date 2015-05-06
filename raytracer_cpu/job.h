@@ -1,9 +1,6 @@
 #ifndef JOB_CUH
 #define JOB_CUH
 
-#include "cuda_runtime.h"
-#include "device_launch_parameters.h"
-
 typedef struct
 {
   int image_width;
@@ -17,7 +14,7 @@ typedef struct
   int *target_idx;
 } job_t;
 
-#define THREADS_PER_BLOCK 32
+#define THREADS_PER_BLOCK 1
 //#define THREADS_PER_BLOCK 64
 #define BLOCKS_PER_JOB(size) ((size) / (THREADS_PER_BLOCK))
 
