@@ -136,7 +136,6 @@ static void do_pps(int *arr, int size)
 	for(int d = 0; d <= d_max; d++)
 	{
 		pps_kernel<<< BLOCKS_PER_JOB(size), THREADS_PER_BLOCK >>>(temp, arr, pow2(d));
-		cudaDeviceSynchronize();
 		cudaCheckErrors("pps_kernel fail");
 		int *swap = temp;
 		temp = arr;
@@ -164,13 +163,11 @@ static int ray_step(job_t dev_job, scene_t *scene, int depth)
 		init_rand(rand_init);
 
 		init_kernel<<< BLOCKS_PER_JOB(size), THREADS_PER_BLOCK >>>(dev_job, rand_init);
-		cudaDeviceSynchronize();
 		cudaCheckErrors("init_kernel fail");
 	}
 
 	std::cout << "[MainLoop] >> Ray tracing kernel .. " << std::endl;
 	ray_kernel<<< BLOCKS_PER_JOB(size), THREADS_PER_BLOCK >>>(dev_job, depth, *scene);
-	cudaDeviceSynchronize();
 	cudaCheckErrors("ray_kernel fail");
 	int next_size = 0;
 	do_pps(dev_job.target_idx, size);
@@ -210,7 +207,6 @@ void main_loop(job_t host_job, scene_t *scene)
 
 			forward_kernel<<< BLOCKS_PER_JOB(old_jobs_size), THREADS_PER_BLOCK >>>(curr_job, temp_job);
 			cudaCheckErrors("forward_kernel fail");
-			cudaDeviceSynchronize();
 			cudaCheckErrors("forward_kernel sync fail");
 
 			rand_kernel<<< BLOCKS_PER_JOB(old_jobs_size), THREADS_PER_BLOCK >>>(curr_job, temp_job, rand_init);

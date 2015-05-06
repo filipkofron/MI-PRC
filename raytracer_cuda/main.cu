@@ -103,7 +103,6 @@ int main(int argc, char *argv[])
 	cudaCheckErrors("Some fail #2.");
 
 	init_scene("sample/sample", host_job.image_width, host_job.image_height);
-	cudaDeviceSynchronize();
 
 	cudaCheckErrors("Scene fail.");
 
